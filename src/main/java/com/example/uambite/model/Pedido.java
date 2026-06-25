@@ -1,4 +1,5 @@
 package com.example.uambite.model;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.*;
 import java.util.UUID;
@@ -18,6 +19,11 @@ public class Pedido {
     private Double total;
 
     private String tipoEntrega;
+
+    @JsonBackReference(value = "usuario-pedido")
+    @ManyToOne
+    @JoinColumn(name = "usuario_id")
+    private Usuario usuario;
 
     @OneToMany(mappedBy = "pedido")
     @JsonManagedReference(value = "pedido-detalle")
@@ -63,5 +69,13 @@ public class Pedido {
 
     public void setDetalles(List<DetallePedido> detalles) {
         this.detalles = detalles;
+    }
+
+    public Usuario getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(Usuario usuario) {
+        this.usuario = usuario;
     }
 }

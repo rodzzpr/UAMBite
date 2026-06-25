@@ -24,6 +24,11 @@ public class DetallePedido {
     @JoinColumn(name = "pedido_id")
     private Pedido pedido;
 
+    @JsonBackReference(value = "producto-detalle")
+    @ManyToOne
+    @JoinColumn(name = "producto_id")
+    private Producto producto;
+
     // Getters y Setters
 
     public UUID getId() {
@@ -64,5 +69,13 @@ public class DetallePedido {
 
     public void setPedido(Pedido pedido) {
         this.pedido = pedido;
+    }
+
+    public Producto getProducto() {
+        return producto;
+    }
+
+    public void setProducto(Producto producto) {
+        this.producto = producto;
     }
 }
