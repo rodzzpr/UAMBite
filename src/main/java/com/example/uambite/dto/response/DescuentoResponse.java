@@ -1,67 +1,22 @@
 package com.example.uambite.dto.response;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDate;
 import java.util.UUID;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class DescuentoResponse {
-
     private UUID id;
-
     private String codigo;
-
     private Double porcentaje;
-
-    private Boolean activo;
-
     private LocalDate fechaVencimiento;
-
+    private Boolean activo;
     private String localComida;
-
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public String getCodigo() {
-        return codigo;
-    }
-
-    public void setCodigo(String codigo) {
-        this.codigo = codigo;
-    }
-
-    public Double getPorcentaje() {
-        return porcentaje;
-    }
-
-    public void setPorcentaje(Double porcentaje) {
-        this.porcentaje = porcentaje;
-    }
-
-    public Boolean getActivo() {
-        return activo;
-    }
-
-    public void setActivo(Boolean activo) {
-        this.activo = activo;
-    }
-
-    public LocalDate getFechaVencimiento() {
-        return fechaVencimiento;
-    }
-
-    public void setFechaVencimiento(LocalDate fechaVencimiento) {
-        this.fechaVencimiento = fechaVencimiento;
-    }
-
-    public String getLocalComida() {
-        return localComida;
-    }
-
-    public void setLocalComida(String localComida) {
-        this.localComida = localComida;
-    }
 }

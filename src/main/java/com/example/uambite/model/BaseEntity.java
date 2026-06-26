@@ -1,22 +1,30 @@
 package com.example.uambite.model;
 
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
-import org.hibernate.annotations.UuidGenerator;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Getter
+@Setter
 @MappedSuperclass
-public class BaseEntity {
+@EntityListeners(AuditingEntityListener.class)
+public abstract class BaseEntity {
+
     @Id
-    @UuidGenerator
+    @org.hibernate.annotations.UuidGenerator
     private UUID id;
 
-    public UUID getId() {
-        return id;
-    }
+    @CreatedDate
+    private LocalDateTime createdAt;
 
-    public void setId(UUID id) {
-        this.id = id;
-    }
+    @LastModifiedDate
+    private LocalDateTime updatedAt;
 }

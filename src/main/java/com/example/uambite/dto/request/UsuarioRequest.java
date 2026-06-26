@@ -2,40 +2,35 @@ package com.example.uambite.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class UsuarioRequest {
 
+    @NotBlank(message = "El carnet es obligatorio")
+    @Size(min = 4, max = 20, message = "El carnet debe tener entre 4 y 20 caracteres")
+    private String carnet;
+
     @NotBlank(message = "El nombre es obligatorio")
+    @Size(max = 100)
     private String nombre;
 
-    @NotBlank(message = "El correo es obligatorio")
-    @Email(message = "El correo debe ser válido")
+    @NotBlank(message = "El apellido es obligatorio")
+    @Size(max = 100)
+    private String apellido;
+
+    @Email(message = "El correo debe tener un formato válido")
+    @Size(max = 150)
     private String correo;
 
-    @NotBlank(message = "El rol es obligatorio")
-    private String rol;
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public String getCorreo() {
-        return correo;
-    }
-
-    public void setCorreo(String correo) {
-        this.correo = correo;
-    }
-
-    public String getRol() {
-        return rol;
-    }
-
-    public void setRol(String rol) {
-        this.rol = rol;
-    }
+    @NotBlank(message = "La contraseña es obligatoria")
+    @Size(min = 6, max = 100)
+    private String password;
 }

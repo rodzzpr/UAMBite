@@ -1,9 +1,17 @@
 package com.example.uambite.dto.request;
 
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ProductoIngredienteExtraRequest {
 
     @NotNull(message = "El producto es obligatorio")
@@ -11,20 +19,4 @@ public class ProductoIngredienteExtraRequest {
 
     @NotNull(message = "El ingrediente extra es obligatorio")
     private UUID ingredienteExtraId;
-
-    public UUID getProductoId() {
-        return productoId;
-    }
-
-    public void setProductoId(UUID productoId) {
-        this.productoId = productoId;
-    }
-
-    public UUID getIngredienteExtraId() {
-        return ingredienteExtraId;
-    }
-
-    public void setIngredienteExtraId(UUID ingredienteExtraId) {
-        this.ingredienteExtraId = ingredienteExtraId;
-    }
 }

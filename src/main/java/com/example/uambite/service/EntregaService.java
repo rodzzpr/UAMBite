@@ -2,96 +2,91 @@ package com.example.uambite.service;
 
 import com.example.uambite.dto.request.EntregaRequest;
 import com.example.uambite.dto.response.EntregaResponse;
+import com.example.uambite.exceptions.BusinessException;
+import com.example.uambite.exceptions.ConflictException;
+import com.example.uambite.exceptions.ResourceNotFoundException;
 import com.example.uambite.model.*;
 import com.example.uambite.repository.EntregaRepository;
 import com.example.uambite.repository.PedidoRepository;
-import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class EntregaService {
 
     private final EntregaRepository repository;
     private final PedidoRepository pedidoRepository;
 
-    public EntregaService(EntregaRepository repository,
-                          PedidoRepository pedidoRepository) {
-        this.repository = repository;
-        this.pedidoRepository = pedidoRepository;
-    }
-
+    @Transactional(readOnly = true)
     public List<EntregaResponse> getAll() {
-        return repository.findAll()
-                .stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
+        return repository.findAll().stream().map(this::toResponse).toList();
     }
 
     @Transactional
     public EntregaResponse save(EntregaRequest request) {
-
         Pedido pedido = pedidoRepository.findById(request.getPedidoId())
-                .orElseThrow(() -> new EntityNotFoundException("Pedido no encontrado."));
+                .orElseThrow(() -> new ResourceNotFoundException("Pedido no encontrado."));
 
         if (pedido.getEntrega() != null) {
-            throw new IllegalArgumentException("Este pedido ya tiene una entrega registrada.");
+            throw new ConflictException("Este pedido ya tiene una entrega registrada.");
         }
 
         if (pedido.getPago() == null
                 || pedido.getPago().getEstado() != EstadoPago.PAGADO) {
-            throw new IllegalArgumentException("Solo se puede crear una entrega para pedidos pagados.");
+            throw new BusinessException(
+                    "Solo se puede crear una entrega para pedidos pagados.");
         }
 
-        Entrega entrega = new Entrega();
-        entrega.setUbicacion(request.getUbicacion());
-        entrega.setPedido(pedido);
-        entrega.setFechaEntrega(LocalDateTime.now());
-        entrega.setEstado(EstadoEntrega.EN_CAMINO);
+        EstadoPedidoTransiciones.validar(pedido.getEstado(), EstadoPedido.EN_CAMINO);
+
+        Entrega entrega = Entrega.builder()
+                .ubicacion(request.getUbicacion())
+                .pedido(pedido)
+                .fechaEntrega(LocalDateTime.now())
+                .estado(EstadoEntrega.EN_CAMINO)
+                .build();
 
         Entrega saved = repository.save(entrega);
-
         pedido.setEstado(EstadoPedido.EN_CAMINO);
         pedidoRepository.save(pedido);
-
         return toResponse(saved);
     }
 
     @Transactional
     public EntregaResponse finalizarEntrega(UUID entregaId) {
-
         Entrega entrega = repository.findById(entregaId)
-                .orElseThrow(() -> new EntityNotFoundException("Entrega no encontrada."));
+                .orElseThrow(() -> new ResourceNotFoundException("Entrega no encontrada."));
 
         if (entrega.getEstado() == EstadoEntrega.ENTREGADA) {
-            throw new IllegalArgumentException("La entrega ya fue finalizada.");
+            throw new BusinessException("La entrega ya fue finalizada.");
+        }
+
+        Pedido pedido = entrega.getPedido();
+        if (pedido == null) {
+            throw new BusinessException("La entrega no tiene un pedido asociado.");
         }
 
         entrega.setEstado(EstadoEntrega.ENTREGADA);
-
-        Pedido pedido = entrega.getPedido();
+        EstadoPedidoTransiciones.validar(pedido.getEstado(), EstadoPedido.ENTREGADO);
         pedido.setEstado(EstadoPedido.ENTREGADO);
-
         repository.save(entrega);
         pedidoRepository.save(pedido);
-
         return toResponse(entrega);
     }
 
     private EntregaResponse toResponse(Entrega entrega) {
-        EntregaResponse response = new EntregaResponse();
-        response.setId(entrega.getId());
-        response.setUbicacion(entrega.getUbicacion());
-        response.setFechaEntrega(entrega.getFechaEntrega());
-        response.setEstado(entrega.getEstado());
-        if (entrega.getPedido() != null) {
-            response.setPedidoId(entrega.getPedido().getId());
-        }
-        return response;
+        return EntregaResponse.builder()
+                .id(entrega.getId())
+                .ubicacion(entrega.getUbicacion())
+                .fechaEntrega(entrega.getFechaEntrega())
+                .estado(entrega.getEstado())
+                .pedidoId(entrega.getPedido() != null ? entrega.getPedido().getId() : null)
+                .build();
     }
 }

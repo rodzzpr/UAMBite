@@ -11,4 +11,6 @@ public interface PedidoRepository extends JpaRepository<Pedido, UUID> {
 
     List<Pedido> findByUsuarioIdAndEstadoIn(UUID usuarioId, List<EstadoPedido> estados);
 
+    List<Pedido> findByUsuarioId(UUID usuarioId);
+
 }

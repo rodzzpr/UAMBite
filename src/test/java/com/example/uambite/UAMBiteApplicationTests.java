@@ -3,14 +3,19 @@ package com.example.uambite;
 import com.example.uambite.controller.*;
 import com.example.uambite.dto.request.*;
 import com.example.uambite.dto.response.*;
+import com.example.uambite.exceptions.BusinessException;
+import com.example.uambite.exceptions.ConflictException;
 import com.example.uambite.model.*;
+import com.example.uambite.security.JwtUtil;
 import com.example.uambite.service.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -29,6 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         EntregaController.class,
         FranjaHorariaController.class
 })
+@AutoConfigureMockMvc(addFilters = false)
 class UAMBiteApplicationTests {
 
     @Autowired
@@ -46,6 +52,12 @@ class UAMBiteApplicationTests {
     @MockitoBean
     private FranjaHorariaService franjaHorariaService;
 
+    @MockitoBean
+    private UsuarioService usuarioService;
+
+    @MockitoBean
+    private JwtUtil jwtUtil;
+
     private ObjectMapper objectMapper;
 
     @BeforeEach
@@ -62,13 +74,14 @@ class UAMBiteApplicationTests {
         request.setProductoId(UUID.randomUUID());
 
         when(detallePedidoService.save(any()))
-                .thenThrow(new IllegalArgumentException("Stock insuficiente para el producto seleccionado."));
+                .thenThrow(new ConflictException("Stock insuficiente para el producto seleccionado."));
 
         mockMvc.perform(post("/detallepedido/save")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Stock insuficiente para el producto seleccionado."));
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("Stock insuficiente para el producto seleccionado."))
+                .andExpect(jsonPath("$.code").value("CONFLICT"));
     }
 
     @Test
@@ -78,13 +91,14 @@ class UAMBiteApplicationTests {
         request.setUsuarioId(UUID.randomUUID());
 
         when(pedidoService.save(any()))
-                .thenThrow(new IllegalArgumentException("El usuario ya tiene un pedido activo."));
+                .thenThrow(new ConflictException("El usuario ya tiene un pedido activo."));
 
         mockMvc.perform(post("/pedido/save")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("El usuario ya tiene un pedido activo."));
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("El usuario ya tiene un pedido activo."))
+                .andExpect(jsonPath("$.code").value("CONFLICT"));
     }
 
     @Test
@@ -95,13 +109,14 @@ class UAMBiteApplicationTests {
         request.setFranjaHorariaId(UUID.randomUUID());
 
         when(pedidoService.save(any()))
-                .thenThrow(new IllegalArgumentException("La franja horaria está llena."));
+                .thenThrow(new ConflictException("La franja horaria está llena."));
 
         mockMvc.perform(post("/pedido/save")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("La franja horaria está llena."));
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("La franja horaria está llena."))
+                .andExpect(jsonPath("$.code").value("CONFLICT"));
     }
 
     @Test

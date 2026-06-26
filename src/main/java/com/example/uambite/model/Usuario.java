@@ -1,54 +1,43 @@
 package com.example.uambite.model;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.List;
 
 @Entity
 @Table(name = "usuario")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Usuario extends BaseEntity {
 
+    @Column(nullable = false, unique = true, length = 20)
+    private String carnet;
+
+    @Column(nullable = false, length = 100)
     private String nombre;
 
+    @Column(nullable = false, length = 100)
+    private String apellido;
+
+    @Column(length = 150)
     private String correo;
 
+    @Column(nullable = false)
+    private String password;
+
+    @Column(length = 30)
     private String rol;
 
-    @OneToMany(mappedBy = "usuario")
     @JsonManagedReference(value = "usuario-pedido")
+    @OneToMany(mappedBy = "usuario")
     private List<Pedido> pedidos;
-
-    // Getters y Setters
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public String getCorreo() {
-        return correo;
-    }
-
-    public void setCorreo(String correo) {
-        this.correo = correo;
-    }
-
-    public String getRol() {
-        return rol;
-    }
-
-    public void setRol(String rol) {
-        this.rol = rol;
-    }
-
-    public List<Pedido> getPedidos() {
-        return pedidos;
-    }
-
-    public void setPedidos(List<Pedido> pedidos) {
-        this.pedidos = pedidos;
-    }
 }

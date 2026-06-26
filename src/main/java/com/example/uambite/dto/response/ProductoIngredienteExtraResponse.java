@@ -1,36 +1,20 @@
 package com.example.uambite.dto.response;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.UUID;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ProductoIngredienteExtraResponse {
-
     private UUID id;
-
+    private UUID productoId;
     private String producto;
-
+    private UUID ingredienteExtraId;
     private String ingredienteExtra;
-
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public String getProducto() {
-        return producto;
-    }
-
-    public void setProducto(String producto) {
-        this.producto = producto;
-    }
-
-    public String getIngredienteExtra() {
-        return ingredienteExtra;
-    }
-
-    public void setIngredienteExtra(String ingredienteExtra) {
-        this.ingredienteExtra = ingredienteExtra;
-    }
 }

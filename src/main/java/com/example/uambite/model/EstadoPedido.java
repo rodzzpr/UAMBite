@@ -2,7 +2,8 @@ package com.example.uambite.model;
 
 public enum EstadoPedido {
     PENDIENTE,
-    PREPARANDO,
+    CONFIRMADO,
+    EN_PREPARACION,
     LISTO,
     EN_CAMINO,
     ENTREGADO,

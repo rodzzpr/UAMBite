@@ -1,16 +1,33 @@
 package com.example.uambite.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "detalle_pedido")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class DetallePedido extends BaseEntity {
 
+    @Column(nullable = false)
     private Integer cantidad;
 
+    @Column(name = "precio_unitario", nullable = false)
     private Double precioUnitario;
 
+    @Column(nullable = false)
     private Double subtotal;
 
     @JsonBackReference(value = "pedido-detalle")
@@ -23,45 +40,8 @@ public class DetallePedido extends BaseEntity {
     @JoinColumn(name = "producto_id")
     private Producto producto;
 
-    // Getters y Setters
-
-    public Integer getCantidad() {
-        return cantidad;
-    }
-
-    public void setCantidad(Integer cantidad) {
-        this.cantidad = cantidad;
-    }
-
-    public Double getPrecioUnitario() {
-        return precioUnitario;
-    }
-
-    public void setPrecioUnitario(Double precioUnitario) {
-        this.precioUnitario = precioUnitario;
-    }
-
-    public Double getSubtotal() {
-        return subtotal;
-    }
-
-    public void setSubtotal(Double subtotal) {
-        this.subtotal = subtotal;
-    }
-
-    public Pedido getPedido() {
-        return pedido;
-    }
-
-    public void setPedido(Pedido pedido) {
-        this.pedido = pedido;
-    }
-
-    public Producto getProducto() {
-        return producto;
-    }
-
-    public void setProducto(Producto producto) {
-        this.producto = producto;
-    }
+    @Builder.Default
+    @JsonManagedReference(value = "detalle-ingrediente-extra")
+    @OneToMany(mappedBy = "detallePedido", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DetallePedidoIngredienteExtra> ingredientesExtra = new ArrayList<>();
 }

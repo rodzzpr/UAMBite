@@ -2,55 +2,68 @@ package com.example.uambite.service;
 
 import com.example.uambite.dto.request.LocalComidaRequest;
 import com.example.uambite.dto.response.LocalComidaResponse;
+import com.example.uambite.exceptions.ResourceNotFoundException;
 import com.example.uambite.model.LocalComida;
 import com.example.uambite.repository.LocalComidaRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class LocalComidaService {
 
     private final LocalComidaRepository repository;
 
-    public LocalComidaService(LocalComidaRepository repository) {
-        this.repository = repository;
+    @Transactional(readOnly = true)
+    public List<LocalComidaResponse> getAll() {
+        return repository.findAll().stream().map(this::toResponse).toList();
     }
 
-    public List<LocalComidaResponse> getAll() {
-        return repository.findAll()
-                .stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
+    @Transactional(readOnly = true)
+    public LocalComidaResponse getById(UUID id) {
+        return toResponse(findOrThrow(id));
     }
 
     @Transactional
     public LocalComidaResponse save(LocalComidaRequest request) {
+        LocalComida local = LocalComida.builder()
+                .nombre(request.getNombre())
+                .ubicacion(request.getUbicacion())
+                .horario(request.getHorario())
+                .build();
+        return toResponse(repository.save(local));
+    }
 
-        LocalComida local = new LocalComida();
-
+    @Transactional
+    public LocalComidaResponse update(UUID id, LocalComidaRequest request) {
+        LocalComida local = findOrThrow(id);
         local.setNombre(request.getNombre());
         local.setUbicacion(request.getUbicacion());
         local.setHorario(request.getHorario());
-        local.setDisponible(request.getDisponible());
+        return toResponse(repository.save(local));
+    }
 
-        LocalComida saved = repository.save(local);
+    @Transactional
+    public void delete(UUID id) {
+        LocalComida local = findOrThrow(id);
+        repository.delete(local);
+    }
 
-        return toResponse(saved);
+    private LocalComida findOrThrow(UUID id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Local de comida no encontrado."));
     }
 
     private LocalComidaResponse toResponse(LocalComida local) {
-
-        LocalComidaResponse response = new LocalComidaResponse();
-
-        response.setId(local.getId());
-        response.setNombre(local.getNombre());
-        response.setUbicacion(local.getUbicacion());
-        response.setHorario(local.getHorario());
-        response.setDisponible(local.getDisponible());
-
-        return response;
+        return LocalComidaResponse.builder()
+                .id(local.getId())
+                .nombre(local.getNombre())
+                .ubicacion(local.getUbicacion())
+                .horario(local.getHorario())
+                .build();
     }
 }

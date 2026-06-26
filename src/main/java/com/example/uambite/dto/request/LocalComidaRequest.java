@@ -1,49 +1,26 @@
 package com.example.uambite.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class LocalComidaRequest {
 
     @NotBlank(message = "El nombre es obligatorio")
+    @Size(max = 150, message = "El nombre no puede exceder 150 caracteres")
     private String nombre;
 
     @NotBlank(message = "La ubicación es obligatoria")
+    @Size(max = 255, message = "La ubicación no puede exceder 255 caracteres")
     private String ubicacion;
 
-    @NotBlank(message = "El horario es obligatorio")
+    @Size(max = 100, message = "El horario no puede exceder 100 caracteres")
     private String horario;
-
-    private Boolean disponible;
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public String getUbicacion() {
-        return ubicacion;
-    }
-
-    public void setUbicacion(String ubicacion) {
-        this.ubicacion = ubicacion;
-    }
-
-    public String getHorario() {
-        return horario;
-    }
-
-    public void setHorario(String horario) {
-        this.horario = horario;
-    }
-
-    public Boolean getDisponible() {
-        return disponible;
-    }
-
-    public void setDisponible(Boolean disponible) {
-        this.disponible = disponible;
-    }
 }

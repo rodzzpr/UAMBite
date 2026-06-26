@@ -3,90 +3,48 @@ package com.example.uambite.model;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalTime;
 import java.util.List;
 
 @Entity
 @Table(name = "franja_horaria")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class FranjaHoraria extends BaseEntity {
 
+    @Column(name = "hora_inicio", nullable = false)
     private LocalTime horaInicio;
 
+    @Column(name = "hora_fin", nullable = false)
     private LocalTime horaFin;
 
+    @Column(name = "capacidad_maxima", nullable = false)
     private Integer capacidadMaxima;
 
+    @Column(name = "pedidos_actuales", nullable = false)
     private Integer pedidosActuales;
 
+    @Column(nullable = false)
     private Boolean disponible;
 
+    @Version
+    private Long version;
+
+    @JsonBackReference(value = "local-franja")
     @ManyToOne
     @JoinColumn(name = "local_comida_id")
-    @JsonBackReference(value = "local-franja")
     private LocalComida localComida;
 
-    @OneToMany(mappedBy = "franjaHoraria")
     @JsonManagedReference(value = "franja-pedido")
+    @OneToMany(mappedBy = "franjaHoraria")
     private List<Pedido> pedidos;
-
-    // ==========================
-    // Getters y Setters
-    // ==========================
-
-    public LocalTime getHoraInicio() {
-        return horaInicio;
-    }
-
-    public void setHoraInicio(LocalTime horaInicio) {
-        this.horaInicio = horaInicio;
-    }
-
-    public LocalTime getHoraFin() {
-        return horaFin;
-    }
-
-    public void setHoraFin(LocalTime horaFin) {
-        this.horaFin = horaFin;
-    }
-
-    public Integer getCapacidadMaxima() {
-        return capacidadMaxima;
-    }
-
-    public void setCapacidadMaxima(Integer capacidadMaxima) {
-        this.capacidadMaxima = capacidadMaxima;
-    }
-
-    public Integer getPedidosActuales() {
-        return pedidosActuales;
-    }
-
-    public void setPedidosActuales(Integer pedidosActuales) {
-        this.pedidosActuales = pedidosActuales;
-    }
-
-    public Boolean getDisponible() {
-        return disponible;
-    }
-
-    public void setDisponible(Boolean disponible) {
-        this.disponible = disponible;
-    }
-
-    public LocalComida getLocalComida() {
-        return localComida;
-    }
-
-    public void setLocalComida(LocalComida localComida) {
-        this.localComida = localComida;
-    }
-
-    public List<Pedido> getPedidos() {
-        return pedidos;
-    }
-
-    public void setPedidos(List<Pedido> pedidos) {
-        this.pedidos = pedidos;
-    }
 }
