@@ -1,9 +1,13 @@
 package com.example.uambite.controller;
 
 import com.example.uambite.dto.request.FranjaHorariaRequest;
+import com.example.uambite.dto.response.FranjaHorariaResponse;
 import com.example.uambite.service.FranjaHorariaService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/franja")
@@ -20,8 +24,13 @@ public class FranjaHorariaController {
         return ResponseEntity.ok(service.getAll());
     }
 
+    @GetMapping("/disponibles")
+    public List<FranjaHorariaResponse> getDisponibles() {
+        return service.getDisponibles();
+    }
+
     @PostMapping("/save")
-    public ResponseEntity<?> save(@RequestBody FranjaHorariaRequest request) {
+    public ResponseEntity<?> save(@Valid @RequestBody FranjaHorariaRequest request) {
         return ResponseEntity.ok(service.save(request));
     }
 }

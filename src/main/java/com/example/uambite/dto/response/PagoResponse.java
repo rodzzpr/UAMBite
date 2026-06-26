@@ -1,15 +1,18 @@
 package com.example.uambite.dto.response;
 
+import com.example.uambite.model.EstadoPago;
+import com.example.uambite.model.MetodoPago;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class PagoResponse {
 
     private UUID id;
-    private String metodoPago;
+    private MetodoPago metodoPago;
     private Double monto;
     private LocalDateTime fecha;
-    private String estado;
+    private EstadoPago estado;
     private UUID pedidoId;
 
     public UUID getId() {
@@ -20,11 +23,11 @@ public class PagoResponse {
         this.id = id;
     }
 
-    public String getMetodoPago() {
+    public MetodoPago getMetodoPago() {
         return metodoPago;
     }
 
-    public void setMetodoPago(String metodoPago) {
+    public void setMetodoPago(MetodoPago metodoPago) {
         this.metodoPago = metodoPago;
     }
 
@@ -44,11 +47,11 @@ public class PagoResponse {
         this.fecha = fecha;
     }
 
-    public String getEstado() {
+    public EstadoPago getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
+    public void setEstado(EstadoPago estado) {
         this.estado = estado;
     }
 

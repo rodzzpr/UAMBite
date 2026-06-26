@@ -8,6 +8,7 @@ import com.example.uambite.repository.FranjaHorariaRepository;
 import com.example.uambite.repository.LocalComidaRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,6 +32,14 @@ public class FranjaHorariaService {
                 .collect(Collectors.toList());
     }
 
+    public List<FranjaHorariaResponse> getDisponibles() {
+        return repository.findByDisponibleTrue()
+                .stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
     public FranjaHorariaResponse save(FranjaHorariaRequest request) {
 
         LocalComida local = localComidaRepository.findById(request.getLocalComidaId())
@@ -38,11 +47,10 @@ public class FranjaHorariaService {
 
         if (request.getHoraFin().isBefore(request.getHoraInicio())
                 || request.getHoraFin().equals(request.getHoraInicio())) {
-            throw new RuntimeException("La hora final debe ser mayor a la inicial");
+            throw new IllegalArgumentException("La hora final debe ser mayor a la inicial");
         }
 
         FranjaHoraria franja = new FranjaHoraria();
-
         franja.setHoraInicio(request.getHoraInicio());
         franja.setHoraFin(request.getHoraFin());
         franja.setCapacidadMaxima(request.getCapacidadMaxima());
@@ -51,25 +59,20 @@ public class FranjaHorariaService {
         franja.setLocalComida(local);
 
         FranjaHoraria saved = repository.save(franja);
-
         return toResponse(saved);
     }
 
     private FranjaHorariaResponse toResponse(FranjaHoraria franja) {
-
         FranjaHorariaResponse response = new FranjaHorariaResponse();
-
         response.setId(franja.getId());
         response.setHoraInicio(franja.getHoraInicio());
         response.setHoraFin(franja.getHoraFin());
         response.setCapacidadMaxima(franja.getCapacidadMaxima());
         response.setPedidosActuales(franja.getPedidosActuales());
         response.setDisponible(franja.getDisponible());
-
         if (franja.getLocalComida() != null) {
             response.setLocalComida(franja.getLocalComida().getNombre());
         }
-
         return response;
     }
 }

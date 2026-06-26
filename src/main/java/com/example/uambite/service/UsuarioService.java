@@ -5,6 +5,7 @@ import com.example.uambite.dto.response.UsuarioResponse;
 import com.example.uambite.model.Usuario;
 import com.example.uambite.repository.UsuarioRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,7 +19,6 @@ public class UsuarioService {
         this.repository = repository;
     }
 
-    // Obtener todos los usuarios
     public List<UsuarioResponse> getAll() {
         return repository.findAll()
                 .stream()
@@ -26,7 +26,7 @@ public class UsuarioService {
                 .collect(Collectors.toList());
     }
 
-    // Guardar usuario
+    @Transactional
     public UsuarioResponse save(UsuarioRequest request) {
 
         Usuario usuario = new Usuario();
@@ -40,7 +40,6 @@ public class UsuarioService {
         return toResponse(saved);
     }
 
-    // Conversión Entity -> DTO
     private UsuarioResponse toResponse(Usuario usuario) {
 
         UsuarioResponse response = new UsuarioResponse();

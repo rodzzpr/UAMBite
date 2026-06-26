@@ -2,9 +2,7 @@ package com.example.uambite.service;
 
 import com.example.uambite.dto.request.DetallePedidoRequest;
 import com.example.uambite.dto.response.DetallePedidoResponse;
-import com.example.uambite.model.DetallePedido;
-import com.example.uambite.model.Pedido;
-import com.example.uambite.model.Producto;
+import com.example.uambite.model.*;
 import com.example.uambite.repository.DetallePedidoRepository;
 import com.example.uambite.repository.PedidoRepository;
 import com.example.uambite.repository.ProductoRepository;
@@ -30,7 +28,6 @@ public class DetallePedidoService {
         this.productoRepository = productoRepository;
     }
 
-    // Obtener todos los detalles
     public List<DetallePedidoResponse> getAll() {
         return repository.findAll()
                 .stream()
@@ -38,7 +35,6 @@ public class DetallePedidoService {
                 .collect(Collectors.toList());
     }
 
-    // Agregar un producto al pedido
     @Transactional
     public DetallePedidoResponse save(DetallePedidoRequest request) {
 
@@ -48,61 +44,43 @@ public class DetallePedidoService {
         Producto producto = productoRepository.findById(request.getProductoId())
                 .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado."));
 
-        // Regla 1: Solo se pueden modificar pedidos pendientes
-        if (!"PENDIENTE".equals(pedido.getEstado())) {
+        if (pedido.getEstado() != EstadoPedido.PENDIENTE) {
             throw new IllegalArgumentException("El pedido ya no puede modificarse.");
         }
 
-        // Regla 2: Validar stock suficiente
         if (producto.getStock() < request.getCantidad()) {
             throw new IllegalArgumentException("Stock insuficiente para el producto seleccionado.");
         }
 
         DetallePedido detalle = new DetallePedido();
-
-        // Datos enviados por el cliente
         detalle.setCantidad(request.getCantidad());
         detalle.setPedido(pedido);
         detalle.setProducto(producto);
-
-        // Datos calculados por el sistema
         detalle.setPrecioUnitario(producto.getPrecio());
         detalle.setSubtotal(producto.getPrecio() * request.getCantidad());
 
-        // Guardar detalle
         DetallePedido saved = repository.save(detalle);
 
-        // Recalcular total del pedido
         List<DetallePedido> detalles = repository.findByPedidoId(pedido.getId());
-
-        double total = detalles.stream()
-                .mapToDouble(DetallePedido::getSubtotal)
-                .sum();
-
+        double total = detalles.stream().mapToDouble(DetallePedido::getSubtotal).sum();
         pedido.setTotal(total);
         pedidoRepository.save(pedido);
 
-        // Actualizar stock
         producto.setStock(producto.getStock() - request.getCantidad());
         productoRepository.save(producto);
 
         return toResponse(saved);
     }
 
-    // Entity -> DTO
     private DetallePedidoResponse toResponse(DetallePedido detalle) {
-
         DetallePedidoResponse response = new DetallePedidoResponse();
-
         response.setId(detalle.getId());
         response.setCantidad(detalle.getCantidad());
         response.setPrecioUnitario(detalle.getPrecioUnitario());
         response.setSubtotal(detalle.getSubtotal());
-
         if (detalle.getProducto() != null) {
             response.setProducto(detalle.getProducto().getNombre());
         }
-
         return response;
     }
 }

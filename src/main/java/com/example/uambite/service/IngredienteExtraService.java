@@ -5,6 +5,7 @@ import com.example.uambite.dto.response.IngredienteExtraResponse;
 import com.example.uambite.model.IngredienteExtra;
 import com.example.uambite.repository.IngredienteExtraRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,7 +19,6 @@ public class IngredienteExtraService {
         this.repository = repository;
     }
 
-    // Obtener todos los ingredientes extra
     public List<IngredienteExtraResponse> getAll() {
         return repository.findAll()
                 .stream()
@@ -26,7 +26,7 @@ public class IngredienteExtraService {
                 .collect(Collectors.toList());
     }
 
-    // Guardar ingrediente extra
+    @Transactional
     public IngredienteExtraResponse save(IngredienteExtraRequest request) {
 
         IngredienteExtra ingrediente = new IngredienteExtra();
@@ -39,7 +39,6 @@ public class IngredienteExtraService {
         return toResponse(saved);
     }
 
-    // Entity -> DTO
     private IngredienteExtraResponse toResponse(IngredienteExtra ingrediente) {
 
         IngredienteExtraResponse response = new IngredienteExtraResponse();

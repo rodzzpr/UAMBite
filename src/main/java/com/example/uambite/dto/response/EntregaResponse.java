@@ -1,5 +1,7 @@
 package com.example.uambite.dto.response;
 
+import com.example.uambite.model.EstadoEntrega;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -8,7 +10,7 @@ public class EntregaResponse {
     private UUID id;
     private String ubicacion;
     private LocalDateTime fechaEntrega;
-    private String estado;
+    private EstadoEntrega estado;
     private UUID pedidoId;
 
     public UUID getId() {
@@ -35,11 +37,11 @@ public class EntregaResponse {
         this.fechaEntrega = fechaEntrega;
     }
 
-    public String getEstado() {
+    public EstadoEntrega getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
+    public void setEstado(EstadoEntrega estado) {
         this.estado = estado;
     }
 

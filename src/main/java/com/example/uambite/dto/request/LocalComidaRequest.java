@@ -1,10 +1,18 @@
 package com.example.uambite.dto.request;
 
+import jakarta.validation.constraints.NotBlank;
+
 public class LocalComidaRequest {
 
+    @NotBlank(message = "El nombre es obligatorio")
     private String nombre;
+
+    @NotBlank(message = "La ubicación es obligatoria")
     private String ubicacion;
+
+    @NotBlank(message = "El horario es obligatorio")
     private String horario;
+
     private Boolean disponible;
 
     public String getNombre() {

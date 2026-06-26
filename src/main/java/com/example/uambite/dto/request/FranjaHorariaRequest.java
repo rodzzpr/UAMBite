@@ -1,16 +1,24 @@
 package com.example.uambite.dto.request;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
 import java.time.LocalTime;
 import java.util.UUID;
 
 public class FranjaHorariaRequest {
 
+    @NotNull(message = "La hora de inicio es obligatoria")
     private LocalTime horaInicio;
 
+    @NotNull(message = "La hora de fin es obligatoria")
     private LocalTime horaFin;
 
+    @NotNull(message = "La capacidad máxima es obligatoria")
+    @Positive(message = "La capacidad máxima debe ser mayor a cero")
     private Integer capacidadMaxima;
 
+    @NotNull(message = "El local de comida es obligatorio")
     private UUID localComidaId;
 
     public LocalTime getHoraInicio() {

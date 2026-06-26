@@ -30,4 +30,12 @@ public class IngredienteExtra extends BaseEntity {
     public void setPrecioExtra(Double precioExtra) {
         this.precioExtra = precioExtra;
     }
+
+    public List<ProductoIngredienteExtra> getProductos() {
+        return productos;
+    }
+
+    public void setProductos(List<ProductoIngredienteExtra> productos) {
+        this.productos = productos;
+    }
 }

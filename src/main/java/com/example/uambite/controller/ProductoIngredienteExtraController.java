@@ -3,6 +3,7 @@ package com.example.uambite.controller;
 import com.example.uambite.dto.request.ProductoIngredienteExtraRequest;
 import com.example.uambite.dto.response.ProductoIngredienteExtraResponse;
 import com.example.uambite.service.ProductoIngredienteExtraService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,8 +14,7 @@ public class ProductoIngredienteExtraController {
 
     private final ProductoIngredienteExtraService service;
 
-    public ProductoIngredienteExtraController(
-            ProductoIngredienteExtraService service) {
+    public ProductoIngredienteExtraController(ProductoIngredienteExtraService service) {
         this.service = service;
     }
 
@@ -25,8 +25,7 @@ public class ProductoIngredienteExtraController {
 
     @PostMapping("/save")
     public ProductoIngredienteExtraResponse save(
-            @RequestBody ProductoIngredienteExtraRequest request) {
-
+            @Valid @RequestBody ProductoIngredienteExtraRequest request) {
         return service.save(request);
     }
 }

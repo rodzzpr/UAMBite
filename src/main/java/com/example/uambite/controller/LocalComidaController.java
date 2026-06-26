@@ -3,6 +3,7 @@ package com.example.uambite.controller;
 import com.example.uambite.dto.request.LocalComidaRequest;
 import com.example.uambite.dto.response.LocalComidaResponse;
 import com.example.uambite.service.LocalComidaService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,7 +24,7 @@ public class LocalComidaController {
     }
 
     @PostMapping("/save")
-    public LocalComidaResponse save(@RequestBody LocalComidaRequest request) {
+    public LocalComidaResponse save(@Valid @RequestBody LocalComidaRequest request) {
         return service.save(request);
     }
 }

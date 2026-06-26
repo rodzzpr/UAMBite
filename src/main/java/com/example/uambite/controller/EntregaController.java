@@ -3,6 +3,7 @@ package com.example.uambite.controller;
 import com.example.uambite.dto.request.EntregaRequest;
 import com.example.uambite.dto.response.EntregaResponse;
 import com.example.uambite.service.EntregaService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,7 +25,7 @@ public class EntregaController {
     }
 
     @PostMapping("/save")
-    public EntregaResponse save(@RequestBody EntregaRequest request) {
+    public EntregaResponse save(@Valid @RequestBody EntregaRequest request) {
         return service.save(request);
     }
 

@@ -13,7 +13,8 @@ public class Entrega extends BaseEntity {
 
     private LocalDateTime fechaEntrega;
 
-    private String estado;
+    @Enumerated(EnumType.STRING)
+    private EstadoEntrega estado;
 
     @OneToOne
     @JoinColumn(name = "pedido_id")
@@ -36,11 +37,11 @@ public class Entrega extends BaseEntity {
         this.fechaEntrega = fechaEntrega;
     }
 
-    public String getEstado() {
+    public EstadoEntrega getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
+    public void setEstado(EstadoEntrega estado) {
         this.estado = estado;
     }
 

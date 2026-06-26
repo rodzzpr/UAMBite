@@ -15,6 +15,8 @@ public class DescuentoResponse {
 
     private LocalDate fechaVencimiento;
 
+    private String localComida;
+
     public UUID getId() {
         return id;
     }
@@ -53,5 +55,13 @@ public class DescuentoResponse {
 
     public void setFechaVencimiento(LocalDate fechaVencimiento) {
         this.fechaVencimiento = fechaVencimiento;
+    }
+
+    public String getLocalComida() {
+        return localComida;
+    }
+
+    public void setLocalComida(String localComida) {
+        this.localComida = localComida;
     }
 }

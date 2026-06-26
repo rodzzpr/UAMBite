@@ -82,4 +82,12 @@ public class Producto extends BaseEntity {
     public void setDetalles(List<DetallePedido> detalles) {
         this.detalles = detalles;
     }
+
+    public List<ProductoIngredienteExtra> getIngredientesExtras() {
+        return ingredientesExtras;
+    }
+
+    public void setIngredientesExtras(List<ProductoIngredienteExtra> ingredientesExtras) {
+        this.ingredientesExtras = ingredientesExtras;
+    }
 }

@@ -15,13 +15,12 @@ public class ControllerAdvice {
 
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> getErrorValidation(MethodArgumentNotValidException ex)
-    {
-        Map<String, String> errorValidation = new HashMap<>();
+    public Map<String, String> handleValidation(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getFieldErrors().forEach(
-                error -> errorValidation.put("error", error.getDefaultMessage())
+                error -> errors.put(error.getField(), error.getDefaultMessage())
         );
-        return errorValidation;
+        return errors;
     }
 
     @ExceptionHandler(value = EntityNotFoundException.class)

@@ -9,24 +9,26 @@ import java.time.LocalDateTime;
 @Table(name = "pago")
 public class Pago extends BaseEntity {
 
-    private String metodoPago;
+    @Enumerated(EnumType.STRING)
+    private MetodoPago metodoPago;
 
     private Double monto;
 
     private LocalDateTime fecha;
 
-    private String estado;
+    @Enumerated(EnumType.STRING)
+    private EstadoPago estado;
 
     @OneToOne
     @JoinColumn(name = "pedido_id")
     @JsonBackReference(value = "pedido-pago")
     private Pedido pedido;
 
-    public String getMetodoPago() {
+    public MetodoPago getMetodoPago() {
         return metodoPago;
     }
 
-    public void setMetodoPago(String metodoPago) {
+    public void setMetodoPago(MetodoPago metodoPago) {
         this.metodoPago = metodoPago;
     }
 
@@ -46,11 +48,11 @@ public class Pago extends BaseEntity {
         this.fecha = fecha;
     }
 
-    public String getEstado() {
+    public EstadoPago getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
+    public void setEstado(EstadoPago estado) {
         this.estado = estado;
     }
 

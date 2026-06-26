@@ -3,6 +3,7 @@ package com.example.uambite.controller;
 import com.example.uambite.dto.request.DescuentoRequest;
 import com.example.uambite.dto.response.DescuentoResponse;
 import com.example.uambite.service.DescuentoService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,7 +24,7 @@ public class DescuentoController {
     }
 
     @PostMapping("/save")
-    public DescuentoResponse save(@RequestBody DescuentoRequest request) {
+    public DescuentoResponse save(@Valid @RequestBody DescuentoRequest request) {
         return service.save(request);
     }
 }

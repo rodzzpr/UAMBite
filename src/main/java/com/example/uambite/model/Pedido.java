@@ -9,11 +9,13 @@ import java.util.List;
 @Table(name = "pedido")
 public class Pedido extends BaseEntity {
 
-    private String estado;
+    @Enumerated(EnumType.STRING)
+    private EstadoPedido estado;
 
     private Double total;
 
-    private String tipoEntrega;
+    @Enumerated(EnumType.STRING)
+    private TipoEntrega tipoEntrega;
 
     @JsonBackReference(value = "usuario-pedido")
     @ManyToOne
@@ -43,11 +45,11 @@ public class Pedido extends BaseEntity {
 
     // Getters y Setters
 
-    public String getEstado() {
+    public EstadoPedido getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
+    public void setEstado(EstadoPedido estado) {
         this.estado = estado;
     }
 
@@ -59,11 +61,11 @@ public class Pedido extends BaseEntity {
         this.total = total;
     }
 
-    public String getTipoEntrega() {
+    public TipoEntrega getTipoEntrega() {
         return tipoEntrega;
     }
 
-    public void setTipoEntrega(String tipoEntrega) {
+    public void setTipoEntrega(TipoEntrega tipoEntrega) {
         this.tipoEntrega = tipoEntrega;
     }
 

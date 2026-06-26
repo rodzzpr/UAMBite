@@ -8,6 +8,7 @@ import com.example.uambite.repository.LocalComidaRepository;
 import com.example.uambite.repository.ProductoRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,7 +25,6 @@ public class ProductoService {
         this.localRepository = localRepository;
     }
 
-    // Obtener todos los productos
     public List<ProductoResponse> getAll() {
         return repository.findAll()
                 .stream()
@@ -32,7 +32,7 @@ public class ProductoService {
                 .collect(Collectors.toList());
     }
 
-    // Guardar producto
+    @Transactional
     public ProductoResponse save(ProductoRequest request) {
 
         LocalComida local = localRepository.findById(request.getLocalComidaId())
@@ -51,7 +51,6 @@ public class ProductoService {
         return toResponse(saved);
     }
 
-    // Conversión Entity -> DTO
     private ProductoResponse toResponse(Producto producto) {
 
         ProductoResponse response = new ProductoResponse();

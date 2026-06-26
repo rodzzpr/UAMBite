@@ -1,13 +1,16 @@
 package com.example.uambite.dto.response;
 
+import com.example.uambite.model.EstadoPedido;
+import com.example.uambite.model.TipoEntrega;
+
 import java.util.UUID;
 
 public class PedidoResponse {
 
     private UUID id;
-    private String estado;
+    private EstadoPedido estado;
     private Double total;
-    private String tipoEntrega;
+    private TipoEntrega tipoEntrega;
     private String usuario;
 
     public UUID getId() {
@@ -18,11 +21,11 @@ public class PedidoResponse {
         this.id = id;
     }
 
-    public String getEstado() {
+    public EstadoPedido getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
+    public void setEstado(EstadoPedido estado) {
         this.estado = estado;
     }
 
@@ -34,11 +37,11 @@ public class PedidoResponse {
         this.total = total;
     }
 
-    public String getTipoEntrega() {
+    public TipoEntrega getTipoEntrega() {
         return tipoEntrega;
     }
 
-    public void setTipoEntrega(String tipoEntrega) {
+    public void setTipoEntrega(TipoEntrega tipoEntrega) {
         this.tipoEntrega = tipoEntrega;
     }
 

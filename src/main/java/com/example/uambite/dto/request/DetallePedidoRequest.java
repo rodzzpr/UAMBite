@@ -1,13 +1,20 @@
 package com.example.uambite.dto.request;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
 import java.util.UUID;
 
 public class DetallePedidoRequest {
 
+    @NotNull(message = "La cantidad es obligatoria")
+    @Positive(message = "La cantidad debe ser mayor a cero")
     private Integer cantidad;
 
+    @NotNull(message = "El pedido es obligatorio")
     private UUID pedidoId;
 
+    @NotNull(message = "El producto es obligatorio")
     private UUID productoId;
 
     public Integer getCantidad() {

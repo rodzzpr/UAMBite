@@ -5,6 +5,7 @@ import com.example.uambite.dto.response.LocalComidaResponse;
 import com.example.uambite.model.LocalComida;
 import com.example.uambite.repository.LocalComidaRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,7 +19,6 @@ public class LocalComidaService {
         this.repository = repository;
     }
 
-    // Obtener todos los locales
     public List<LocalComidaResponse> getAll() {
         return repository.findAll()
                 .stream()
@@ -26,7 +26,7 @@ public class LocalComidaService {
                 .collect(Collectors.toList());
     }
 
-    // Guardar local
+    @Transactional
     public LocalComidaResponse save(LocalComidaRequest request) {
 
         LocalComida local = new LocalComida();
@@ -41,7 +41,6 @@ public class LocalComidaService {
         return toResponse(saved);
     }
 
-    // Conversión Entity -> DTO
     private LocalComidaResponse toResponse(LocalComida local) {
 
         LocalComidaResponse response = new LocalComidaResponse();

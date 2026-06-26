@@ -1,17 +1,23 @@
 package com.example.uambite.dto.request;
 
+import com.example.uambite.model.MetodoPago;
+import jakarta.validation.constraints.NotNull;
+
 import java.util.UUID;
 
 public class PagoRequest {
 
-    private String metodoPago;
+    @NotNull(message = "El método de pago es obligatorio")
+    private MetodoPago metodoPago;
+
+    @NotNull(message = "El pedido es obligatorio")
     private UUID pedidoId;
 
-    public String getMetodoPago() {
+    public MetodoPago getMetodoPago() {
         return metodoPago;
     }
 
-    public void setMetodoPago(String metodoPago) {
+    public void setMetodoPago(MetodoPago metodoPago) {
         this.metodoPago = metodoPago;
     }
 
