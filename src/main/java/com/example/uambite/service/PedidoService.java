@@ -31,25 +31,28 @@ public class PedidoService {
                 .collect(Collectors.toList());
     }
 
-    // Guardar pedido
+    // Crear pedido
     public PedidoResponse save(PedidoRequest request) {
 
         Usuario usuario = usuarioRepository.findById(request.getUsuarioId())
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado."));
 
         Pedido pedido = new Pedido();
 
-        pedido.setEstado(request.getEstado());
-        pedido.setTotal(request.getTotal());
+        // Datos enviados por el cliente
         pedido.setTipoEntrega(request.getTipoEntrega());
         pedido.setUsuario(usuario);
+
+        // Datos generados por el sistema
+        pedido.setEstado("PENDIENTE");
+        pedido.setTotal(0.0);
 
         Pedido saved = repository.save(pedido);
 
         return toResponse(saved);
     }
 
-    // Conversión Entity -> DTO
+    // Entity -> DTO
     private PedidoResponse toResponse(Pedido pedido) {
 
         PedidoResponse response = new PedidoResponse();

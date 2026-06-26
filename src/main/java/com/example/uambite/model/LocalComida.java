@@ -1,8 +1,9 @@
 package com.example.uambite.model;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -22,10 +23,16 @@ public class LocalComida {
     private Boolean disponible;
 
     @OneToMany(mappedBy = "localComida")
-    @JsonManagedReference
+    @JsonManagedReference(value = "local-producto")
     private List<Producto> productos;
 
+    @OneToMany(mappedBy = "localComida")
+    @JsonManagedReference(value = "local-descuento")
+    private List<Descuento> descuentos;
+
+    // ==========================
     // Getters y Setters
+    // ==========================
 
     public UUID getId() {
         return id;
@@ -73,5 +80,13 @@ public class LocalComida {
 
     public void setProductos(List<Producto> productos) {
         this.productos = productos;
+    }
+
+    public List<Descuento> getDescuentos() {
+        return descuentos;
+    }
+
+    public void setDescuentos(List<Descuento> descuentos) {
+        this.descuentos = descuentos;
     }
 }

@@ -5,10 +5,9 @@ import java.util.UUID;
 public class DetallePedidoRequest {
 
     private Integer cantidad;
-    private Double precioUnitario;
-    private Double subtotal;
 
     private UUID pedidoId;
+
     private UUID productoId;
 
     public Integer getCantidad() {
@@ -17,22 +16,6 @@ public class DetallePedidoRequest {
 
     public void setCantidad(Integer cantidad) {
         this.cantidad = cantidad;
-    }
-
-    public Double getPrecioUnitario() {
-        return precioUnitario;
-    }
-
-    public void setPrecioUnitario(Double precioUnitario) {
-        this.precioUnitario = precioUnitario;
-    }
-
-    public Double getSubtotal() {
-        return subtotal;
-    }
-
-    public void setSubtotal(Double subtotal) {
-        this.subtotal = subtotal;
     }
 
     public UUID getPedidoId() {

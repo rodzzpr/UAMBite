@@ -4,26 +4,8 @@ import java.util.UUID;
 
 public class PedidoRequest {
 
-    private String estado;
-    private Double total;
     private String tipoEntrega;
     private UUID usuarioId;
-
-    public String getEstado() {
-        return estado;
-    }
-
-    public void setEstado(String estado) {
-        this.estado = estado;
-    }
-
-    public Double getTotal() {
-        return total;
-    }
-
-    public void setTotal(Double total) {
-        this.total = total;
-    }
 
     public String getTipoEntrega() {
         return tipoEntrega;

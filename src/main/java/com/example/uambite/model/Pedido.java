@@ -29,6 +29,18 @@ public class Pedido {
     @JsonManagedReference(value = "pedido-detalle")
     private List<DetallePedido> detalles;
 
+    @OneToOne(mappedBy = "pedido")
+    @JsonManagedReference(value = "pedido-pago")
+    private Pago pago;
+
+    @OneToOne(mappedBy = "pedido")
+    @JsonManagedReference(value = "pedido-entrega")
+    private Entrega entrega;
+
+    @ManyToOne
+    @JoinColumn(name = "descuento_id")
+    private Descuento descuento;
+
     // Getters y Setters
 
     public UUID getId() {
@@ -77,5 +89,21 @@ public class Pedido {
 
     public void setUsuario(Usuario usuario) {
         this.usuario = usuario;
+    }
+
+    public Pago getPago() {
+        return pago;
+    }
+
+    public void setPago(Pago pago) {
+        this.pago = pago;
+    }
+
+    public Entrega getEntrega() {
+        return entrega;
+    }
+
+    public void setEntrega(Entrega entrega) {
+        this.entrega = entrega;
     }
 }

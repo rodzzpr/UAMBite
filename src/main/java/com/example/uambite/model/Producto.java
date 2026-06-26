@@ -34,6 +34,10 @@ public class Producto {
     @OneToMany(mappedBy = "producto")
     private List<DetallePedido> detalles;
 
+    // Relación de IngredienteExtra con Producto
+    @OneToMany(mappedBy = "producto")
+    private List<ProductoIngredienteExtra> ingredientesExtras;
+
     // Getters y Setters
 
     public UUID getId() {
