@@ -86,14 +86,16 @@ class UAMBiteApplicationTests {
 
     @Test
     void testPedidoActivo() throws Exception {
+        Usuario usuario = usuarioAutenticado();
         PedidoRequest request = new PedidoRequest();
         request.setTipoEntrega(TipoEntrega.RETIRO_LOCAL);
-        request.setUsuarioId(UUID.randomUUID());
+        request.setUsuarioId(usuario.getId());
 
         when(pedidoService.save(any()))
                 .thenThrow(new ConflictException("El usuario ya tiene un pedido activo."));
 
         mockMvc.perform(post("/pedido/save")
+                        .with(jwtAuth(usuario))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict())
@@ -103,15 +105,17 @@ class UAMBiteApplicationTests {
 
     @Test
     void testFranjaLlena() throws Exception {
+        Usuario usuario = usuarioAutenticado();
         PedidoRequest request = new PedidoRequest();
         request.setTipoEntrega(TipoEntrega.RETIRO_LOCAL);
-        request.setUsuarioId(UUID.randomUUID());
+        request.setUsuarioId(usuario.getId());
         request.setFranjaHorariaId(UUID.randomUUID());
 
         when(pedidoService.save(any()))
                 .thenThrow(new ConflictException("La franja horaria está llena."));
 
         mockMvc.perform(post("/pedido/save")
+                        .with(jwtAuth(usuario))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict())
@@ -157,5 +161,71 @@ class UAMBiteApplicationTests {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.estado").value("CANCELADO"));
+    }
+
+    private Usuario usuarioAutenticado() {
+        Usuario u = new Usuario();
+        u.setId(UUID.randomUUID());
+        u.setCarnet("U123456");
+        u.setNombre("Juan");
+        u.setApellido("Pérez");
+        u.setRol("CLIENTE");
+        return u;
+    }
+
+    @Test
+    void testPedidoParaOtroUsuarioEsRechazado() throws Exception {
+        Usuario autenticado = usuarioAutenticado();
+        PedidoRequest request = new PedidoRequest();
+        request.setTipoEntrega(TipoEntrega.RETIRO_LOCAL);
+        request.setUsuarioId(UUID.randomUUID());
+
+        mockMvc.perform(post("/pedido/save")
+                        .with(jwtAuth(autenticado))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.message").value(
+                        org.hamcrest.Matchers.containsString("No tiene permisos")));
+    }
+
+    @Test
+    void testAdminPuedeCrearPedidoParaOtroUsuario() throws Exception {
+        Usuario admin = usuarioAutenticado();
+        admin.setRol("ADMIN");
+
+        PedidoRequest request = new PedidoRequest();
+        request.setTipoEntrega(TipoEntrega.RETIRO_LOCAL);
+        request.setUsuarioId(UUID.randomUUID());
+
+        PedidoResponse response = PedidoResponse.builder()
+                .id(UUID.randomUUID())
+                .estado(EstadoPedido.PENDIENTE)
+                .total(0.0)
+                .build();
+
+        when(pedidoService.save(any())).thenReturn(response);
+
+        mockMvc.perform(post("/pedido/save")
+                        .with(jwtAuth(admin))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.estado").value("PENDIENTE"));
+    }
+
+    private org.springframework.test.web.servlet.request.RequestPostProcessor jwtAuth(Usuario u) {
+        return request -> {
+            org.springframework.security.core.context.SecurityContext ctx =
+                    org.springframework.security.core.context.SecurityContextHolder.createEmptyContext();
+            ctx.setAuthentication(new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                    u, null,
+                    java.util.Collections.singletonList(
+                            new org.springframework.security.core.authority.SimpleGrantedAuthority(
+                                    "ROLE_" + u.getRol()))));
+            org.springframework.security.core.context.SecurityContextHolder.setContext(ctx);
+            return request;
+        };
     }
 }

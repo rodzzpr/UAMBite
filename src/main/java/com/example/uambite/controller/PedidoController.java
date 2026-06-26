@@ -2,6 +2,7 @@ package com.example.uambite.controller;
 
 import com.example.uambite.dto.request.PedidoRequest;
 import com.example.uambite.dto.response.PedidoResponse;
+import com.example.uambite.exceptions.BusinessException;
 import com.example.uambite.model.Usuario;
 import com.example.uambite.service.PedidoService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -38,8 +39,11 @@ public class PedidoController {
     }
 
     @PostMapping("/save")
-    @Operation(summary = "Crear un nuevo pedido (estado PENDIENTE)")
+    @Operation(summary = "Crear un nuevo pedido (estado PENDIENTE). El usuario se toma del JWT; solo ADMIN puede crear para otro usuario.")
     public ResponseEntity<PedidoResponse> save(@Valid @RequestBody PedidoRequest request) {
+        Usuario usuario = usuarioAutenticado();
+        UUID usuarioEfectivo = resolverUsuarioEfectivo(request.getUsuarioId(), usuario);
+        request.setUsuarioId(usuarioEfectivo);
         return ResponseEntity.status(HttpStatus.CREATED).body(service.save(request));
     }
 
@@ -84,8 +88,26 @@ public class PedidoController {
     @GetMapping("/mios")
     @Operation(summary = "Listar los pedidos del usuario autenticado")
     public ResponseEntity<List<PedidoResponse>> getMios() {
+        return ResponseEntity.ok(service.getMios(usuarioAutenticado().getId()));
+    }
+
+    private Usuario usuarioAutenticado() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        Usuario usuario = (Usuario) auth.getPrincipal();
-        return ResponseEntity.ok(service.getMios(usuario.getId()));
+        return (Usuario) auth.getPrincipal();
+    }
+
+    private UUID resolverUsuarioEfectivo(UUID solicitado, Usuario autenticado) {
+        if (solicitado == null || solicitado.equals(autenticado.getId())) {
+            return autenticado.getId();
+        }
+        boolean esAdmin = autenticado.getRol() != null
+                && autenticado.getRol().equalsIgnoreCase("ADMIN");
+        if (!esAdmin) {
+            throw new BusinessException(
+                    "No tiene permisos para crear pedidos en nombre de otro usuario.",
+                    org.springframework.http.HttpStatus.FORBIDDEN,
+                    "FORBIDDEN");
+        }
+        return solicitado;
     }
 }

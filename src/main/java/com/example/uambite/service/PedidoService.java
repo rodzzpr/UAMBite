@@ -60,10 +60,12 @@ public class PedidoService {
 
     @Transactional
     public PedidoResponse save(PedidoRequest request) {
-        Usuario usuario = usuarioRepository.findById(request.getUsuarioId())
+        UUID usuarioObjetivo = request.getUsuarioId();
+
+        Usuario usuario = usuarioRepository.findById(usuarioObjetivo)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado."));
 
-        validarPedidoUnicoActivo(request.getUsuarioId());
+        validarPedidoUnicoActivo(usuarioObjetivo);
 
         Pedido pedido = Pedido.builder()
                 .tipoEntrega(request.getTipoEntrega())
