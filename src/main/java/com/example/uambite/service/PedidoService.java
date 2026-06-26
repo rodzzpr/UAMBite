@@ -6,6 +6,7 @@ import com.example.uambite.model.Pedido;
 import com.example.uambite.model.Usuario;
 import com.example.uambite.repository.PedidoRepository;
 import com.example.uambite.repository.UsuarioRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -35,7 +36,7 @@ public class PedidoService {
     public PedidoResponse save(PedidoRequest request) {
 
         Usuario usuario = usuarioRepository.findById(request.getUsuarioId())
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado."));
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado."));
 
         Pedido pedido = new Pedido();
 

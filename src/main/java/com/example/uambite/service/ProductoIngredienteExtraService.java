@@ -8,6 +8,7 @@ import com.example.uambite.model.ProductoIngredienteExtra;
 import com.example.uambite.repository.IngredienteExtraRepository;
 import com.example.uambite.repository.ProductoIngredienteExtraRepository;
 import com.example.uambite.repository.ProductoRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,10 +45,10 @@ public class ProductoIngredienteExtraService {
     public ProductoIngredienteExtraResponse save(ProductoIngredienteExtraRequest request) {
 
         Producto producto = productoRepository.findById(request.getProductoId())
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado."));
+                .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado."));
 
         IngredienteExtra ingrediente = ingredienteRepository.findById(request.getIngredienteExtraId())
-                .orElseThrow(() -> new RuntimeException("Ingrediente extra no encontrado."));
+                .orElseThrow(() -> new EntityNotFoundException("Ingrediente extra no encontrado."));
 
         // Regla de negocio:
         // Un ingrediente no puede agregarse dos veces al mismo producto.
@@ -55,7 +56,7 @@ public class ProductoIngredienteExtraService {
                 producto.getId(),
                 ingrediente.getId()).isPresent()) {
 
-            throw new RuntimeException("Este ingrediente ya está asociado al producto.");
+            throw new IllegalArgumentException("Este ingrediente ya está asociado al producto.");
         }
 
         ProductoIngredienteExtra relacion = new ProductoIngredienteExtra();

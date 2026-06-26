@@ -8,6 +8,7 @@ import com.example.uambite.model.Producto;
 import com.example.uambite.repository.DetallePedidoRepository;
 import com.example.uambite.repository.PedidoRepository;
 import com.example.uambite.repository.ProductoRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,19 +43,19 @@ public class DetallePedidoService {
     public DetallePedidoResponse save(DetallePedidoRequest request) {
 
         Pedido pedido = pedidoRepository.findById(request.getPedidoId())
-                .orElseThrow(() -> new RuntimeException("Pedido no encontrado."));
+                .orElseThrow(() -> new EntityNotFoundException("Pedido no encontrado."));
 
         Producto producto = productoRepository.findById(request.getProductoId())
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado."));
+                .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado."));
 
         // Regla 1: Solo se pueden modificar pedidos pendientes
         if (!"PENDIENTE".equals(pedido.getEstado())) {
-            throw new RuntimeException("El pedido ya no puede modificarse.");
+            throw new IllegalArgumentException("El pedido ya no puede modificarse.");
         }
 
         // Regla 2: Validar stock suficiente
         if (producto.getStock() < request.getCantidad()) {
-            throw new RuntimeException("Stock insuficiente para el producto seleccionado.");
+            throw new IllegalArgumentException("Stock insuficiente para el producto seleccionado.");
         }
 
         DetallePedido detalle = new DetallePedido();

@@ -6,6 +6,7 @@ import com.example.uambite.model.Pago;
 import com.example.uambite.model.Pedido;
 import com.example.uambite.repository.PagoRepository;
 import com.example.uambite.repository.PedidoRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,21 +39,21 @@ public class PagoService {
     public PagoResponse save(PagoRequest request) {
 
         Pedido pedido = pedidoRepository.findById(request.getPedidoId())
-                .orElseThrow(() -> new RuntimeException("Pedido no encontrado."));
+                .orElseThrow(() -> new EntityNotFoundException("Pedido no encontrado."));
 
         // Regla 1: Un pedido solo puede tener un pago
         if (pedido.getPago() != null) {
-            throw new RuntimeException("El pedido ya tiene un pago registrado.");
+            throw new IllegalArgumentException("El pedido ya tiene un pago registrado.");
         }
 
         // Regla 2: El pedido debe tener productos
         if (pedido.getTotal() <= 0) {
-            throw new RuntimeException("No se puede pagar un pedido sin productos.");
+            throw new IllegalArgumentException("No se puede pagar un pedido sin productos.");
         }
 
         // Regla 3: Solo se pueden pagar pedidos pendientes
         if (!"PENDIENTE".equals(pedido.getEstado())) {
-            throw new RuntimeException("Solo se pueden pagar pedidos pendientes.");
+            throw new IllegalArgumentException("Solo se pueden pagar pedidos pendientes.");
         }
 
         Pago pago = new Pago();

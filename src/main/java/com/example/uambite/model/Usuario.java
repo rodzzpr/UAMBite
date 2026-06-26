@@ -3,15 +3,10 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import java.util.List;
 
 import jakarta.persistence.*;
-import java.util.UUID;
 
 @Entity
 @Table(name = "usuario")
-public class Usuario {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+public class Usuario extends BaseEntity {
 
     private String nombre;
 
@@ -24,14 +19,6 @@ public class Usuario {
     private List<Pedido> pedidos;
 
     // Getters y Setters
-
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
 
     public String getNombre() {
         return nombre;

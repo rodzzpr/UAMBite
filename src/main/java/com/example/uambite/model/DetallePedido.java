@@ -3,15 +3,9 @@ package com.example.uambite.model;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
-import java.util.UUID;
-
 @Entity
 @Table(name = "detalle_pedido")
-public class DetallePedido {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+public class DetallePedido extends BaseEntity {
 
     private Integer cantidad;
 
@@ -30,14 +24,6 @@ public class DetallePedido {
     private Producto producto;
 
     // Getters y Setters
-
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
 
     public Integer getCantidad() {
         return cantidad;

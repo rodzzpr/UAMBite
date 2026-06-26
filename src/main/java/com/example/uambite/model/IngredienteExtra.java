@@ -3,15 +3,10 @@ package com.example.uambite.model;
 import jakarta.persistence.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @Entity
 @Table(name = "ingrediente_extra")
-public class IngredienteExtra {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+public class IngredienteExtra extends BaseEntity {
 
     private String nombre;
 
@@ -19,14 +14,6 @@ public class IngredienteExtra {
 
     @OneToMany(mappedBy = "ingredienteExtra")
     private List<ProductoIngredienteExtra> productos;
-
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
 
     public String getNombre() {
         return nombre;

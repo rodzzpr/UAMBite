@@ -4,15 +4,10 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Entity
 @Table(name = "pago")
-public class Pago {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+public class Pago extends BaseEntity {
 
     private String metodoPago;
 
@@ -26,14 +21,6 @@ public class Pago {
     @JoinColumn(name = "pedido_id")
     @JsonBackReference(value = "pedido-pago")
     private Pedido pedido;
-
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
 
     public String getMetodoPago() {
         return metodoPago;

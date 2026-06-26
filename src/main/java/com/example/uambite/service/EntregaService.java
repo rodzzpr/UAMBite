@@ -6,6 +6,7 @@ import com.example.uambite.model.Entrega;
 import com.example.uambite.model.Pedido;
 import com.example.uambite.repository.EntregaRepository;
 import com.example.uambite.repository.PedidoRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,16 +38,16 @@ public class EntregaService {
     public EntregaResponse save(EntregaRequest request) {
 
         Pedido pedido = pedidoRepository.findById(request.getPedidoId())
-                .orElseThrow(() -> new RuntimeException("Pedido no encontrado."));
+                .orElseThrow(() -> new EntityNotFoundException("Pedido no encontrado."));
 
         // Regla 1
         if (pedido.getEntrega() != null) {
-            throw new RuntimeException("Este pedido ya tiene una entrega registrada.");
+            throw new IllegalArgumentException("Este pedido ya tiene una entrega registrada.");
         }
 
         // Regla 2
         if (!"PAGADO".equals(pedido.getEstado())) {
-            throw new RuntimeException("Solo se puede crear una entrega para pedidos pagados.");
+            throw new IllegalArgumentException("Solo se puede crear una entrega para pedidos pagados.");
         }
 
         Entrega entrega = new Entrega();
@@ -88,10 +89,10 @@ public class EntregaService {
     public EntregaResponse finalizarEntrega(UUID entregaId) {
 
         Entrega entrega = repository.findById(entregaId)
-                .orElseThrow(() -> new RuntimeException("Entrega no encontrada."));
+                .orElseThrow(() -> new EntityNotFoundException("Entrega no encontrada."));
 
         if ("ENTREGADA".equals(entrega.getEstado())) {
-            throw new RuntimeException("La entrega ya fue finalizada.");
+            throw new IllegalArgumentException("La entrega ya fue finalizada.");
         }
 
         entrega.setEstado("ENTREGADA");

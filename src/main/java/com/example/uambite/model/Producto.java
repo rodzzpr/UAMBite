@@ -5,15 +5,10 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @Entity
 @Table(name = "producto")
-public class Producto {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+public class Producto extends BaseEntity {
 
     private String nombre;
 
@@ -24,7 +19,7 @@ public class Producto {
     private Integer stock;
 
     // Relación con LocalComida
-    @JsonBackReference
+    @JsonBackReference(value = "local-producto")
     @ManyToOne
     @JoinColumn(name = "local_id")
     private LocalComida localComida;
@@ -39,14 +34,6 @@ public class Producto {
     private List<ProductoIngredienteExtra> ingredientesExtras;
 
     // Getters y Setters
-
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
 
     public String getNombre() {
         return nombre;

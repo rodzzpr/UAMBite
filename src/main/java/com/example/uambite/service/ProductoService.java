@@ -6,6 +6,7 @@ import com.example.uambite.model.LocalComida;
 import com.example.uambite.model.Producto;
 import com.example.uambite.repository.LocalComidaRepository;
 import com.example.uambite.repository.ProductoRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -35,7 +36,7 @@ public class ProductoService {
     public ProductoResponse save(ProductoRequest request) {
 
         LocalComida local = localRepository.findById(request.getLocalComidaId())
-                .orElseThrow(() -> new RuntimeException("Local de comida no encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Local de comida no encontrado"));
 
         Producto producto = new Producto();
 
