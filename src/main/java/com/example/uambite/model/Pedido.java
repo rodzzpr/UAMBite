@@ -36,6 +36,11 @@ public class Pedido extends BaseEntity {
     @JoinColumn(name = "descuento_id")
     private Descuento descuento;
 
+    @ManyToOne
+    @JoinColumn(name = "franja_id")
+    @JsonBackReference(value = "franja-pedido")
+    private FranjaHoraria franjaHoraria;
+
     // Getters y Setters
 
     public String getEstado() {
@@ -100,5 +105,13 @@ public class Pedido extends BaseEntity {
 
     public void setDescuento(Descuento descuento) {
         this.descuento = descuento;
+    }
+
+    public FranjaHoraria getFranjaHoraria() {
+        return franjaHoraria;
+    }
+
+    public void setFranjaHoraria(FranjaHoraria franjaHoraria) {
+        this.franjaHoraria = franjaHoraria;
     }
 }

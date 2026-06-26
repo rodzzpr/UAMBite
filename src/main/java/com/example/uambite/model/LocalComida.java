@@ -25,6 +25,10 @@ public class LocalComida extends BaseEntity {
     @JsonManagedReference(value = "local-descuento")
     private List<Descuento> descuentos;
 
+    @OneToMany(mappedBy = "localComida")
+    @JsonManagedReference(value = "local-franja")
+    private List<FranjaHoraria> franjasHorarias;
+
     // ==========================
     // Getters y Setters
     // ==========================
@@ -75,5 +79,13 @@ public class LocalComida extends BaseEntity {
 
     public void setDescuentos(List<Descuento> descuentos) {
         this.descuentos = descuentos;
+    }
+
+    public List<FranjaHoraria> getFranjasHorarias() {
+        return franjasHorarias;
+    }
+
+    public void setFranjasHorarias(List<FranjaHoraria> franjasHorarias) {
+        this.franjasHorarias = franjasHorarias;
     }
 }
