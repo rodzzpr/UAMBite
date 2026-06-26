@@ -100,7 +100,6 @@ public class DetallePedidoService {
             pedidoService.recalcularTotal(pedido);
             pedidoRepository.save(pedido);
         }
-        repository.delete(detalle);
     }
 
     private double cargarExtras(DetallePedido detalle, List<UUID> ingredienteIds) {
