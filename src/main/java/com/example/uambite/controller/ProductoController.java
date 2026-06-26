@@ -1,6 +1,7 @@
 package com.example.uambite.controller;
 
-import com.example.uambite.model.Producto;
+import com.example.uambite.dto.request.ProductoRequest;
+import com.example.uambite.dto.response.ProductoResponse;
 import com.example.uambite.service.ProductoService;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,12 +18,12 @@ public class ProductoController {
     }
 
     @GetMapping("/all")
-    public List<Producto> getAll() {
+    public List<ProductoResponse> getAll() {
         return service.getAll();
     }
 
     @PostMapping("/save")
-    public Producto save(@RequestBody Producto producto) {
-        return service.save(producto);
+    public ProductoResponse save(@RequestBody ProductoRequest request) {
+        return service.save(request);
     }
 }

@@ -1,6 +1,7 @@
 package com.example.uambite.controller;
 
-import com.example.uambite.model.Pedido;
+import com.example.uambite.dto.request.PedidoRequest;
+import com.example.uambite.dto.response.PedidoResponse;
 import com.example.uambite.service.PedidoService;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,12 +18,12 @@ public class PedidoController {
     }
 
     @GetMapping("/all")
-    public List<Pedido> getAll() {
+    public List<PedidoResponse> getAll() {
         return service.getAll();
     }
 
     @PostMapping("/save")
-    public Pedido save(@RequestBody Pedido pedido) {
-        return service.save(pedido);
+    public PedidoResponse save(@RequestBody PedidoRequest request) {
+        return service.save(request);
     }
 }

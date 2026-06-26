@@ -1,6 +1,7 @@
 package com.example.uambite.controller;
 
-import com.example.uambite.model.LocalComida;
+import com.example.uambite.dto.request.LocalComidaRequest;
+import com.example.uambite.dto.response.LocalComidaResponse;
 import com.example.uambite.service.LocalComidaService;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,13 +18,12 @@ public class LocalComidaController {
     }
 
     @GetMapping("/all")
-    public List<LocalComida> getAll() {
+    public List<LocalComidaResponse> getAll() {
         return service.getAll();
     }
 
     @PostMapping("/save")
-    public LocalComida save(@RequestBody LocalComida localComida) {
-        return service.save(localComida);
+    public LocalComidaResponse save(@RequestBody LocalComidaRequest request) {
+        return service.save(request);
     }
-
 }

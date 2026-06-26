@@ -1,6 +1,7 @@
 package com.example.uambite.controller;
 
-import com.example.uambite.model.Usuario;
+import com.example.uambite.dto.request.UsuarioRequest;
+import com.example.uambite.dto.response.UsuarioResponse;
 import com.example.uambite.service.UsuarioService;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,12 +18,13 @@ public class UsuarioController {
     }
 
     @GetMapping("/all")
-    public List<Usuario> getAll() {
+    public List<UsuarioResponse> getAll() {
         return service.getAll();
     }
 
     @PostMapping("/save")
-    public Usuario save(@RequestBody Usuario usuario) {
-        return service.save(usuario);
+    public UsuarioResponse save(@RequestBody UsuarioRequest request) {
+        return service.save(request);
     }
+
 }
