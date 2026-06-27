@@ -20,6 +20,7 @@ public abstract class BaseEntity {
 
     @Id
     @org.hibernate.annotations.UuidGenerator
+    @jakarta.persistence.Column(columnDefinition = "uuid")
     private UUID id;
 
     @CreatedDate

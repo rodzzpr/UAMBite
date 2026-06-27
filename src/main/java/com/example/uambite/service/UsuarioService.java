@@ -35,7 +35,7 @@ public class UsuarioService {
 
     @Transactional
     public UsuarioResponse register(String carnet, String nombre, String apellido,
-                                    String password, String rol) {
+                                    String password, String rol, String correo) {
         if (repository.findByCarnet(carnet).isPresent()) {
             throw new ConflictException("Ya existe un usuario registrado con ese carnet.");
         }
@@ -45,6 +45,7 @@ public class UsuarioService {
                 .apellido(apellido)
                 .password(passwordEncoder.encode(password))
                 .rol(rol)
+                .correo(correo)
                 .build();
         return toResponse(repository.save(usuario));
     }
@@ -52,7 +53,7 @@ public class UsuarioService {
     @Transactional
     public UsuarioResponse save(UsuarioRequest request) {
         return register(request.getCarnet(), request.getNombre(), request.getApellido(),
-                request.getPassword(), "CLIENTE");
+                request.getPassword(), "CLIENTE", request.getCorreo());
     }
 
     @Transactional(readOnly = true)
