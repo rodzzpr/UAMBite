@@ -32,9 +32,6 @@ build/
 ### VS Code ###
 .vscode/
 
-### Local config (secretos, override de propiedades) ###
-src/main/resources/application-local.properties
-src/test/resources/application-test.properties
-*.env
+### Local config (secretos) ###
 .env
 .env.local
