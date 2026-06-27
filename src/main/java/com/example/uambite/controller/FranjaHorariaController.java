@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -41,22 +42,26 @@ public class FranjaHorariaController {
     }
 
     @PostMapping("/save")
-    @Operation(summary = "Crear una nueva franja horaria")
+    @PreAuthorize("hasRole('ADMIN') or @ownershipService.canEditLocal(#request.localComidaId, principal.id)")
+    @Operation(summary = "Crear una nueva franja horaria. ADMIN o encargado del local destino.")
     public ResponseEntity<FranjaHorariaResponse> save(@Valid @RequestBody FranjaHorariaRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.save(request));
     }
 
     @PutMapping("/update/{id}")
-    @Operation(summary = "Actualizar una franja horaria")
+    @PreAuthorize("hasRole('ADMIN') or @ownershipService.canEditFranja(#id, principal.id)")
+    @Operation(summary = "Actualizar una franja horaria. ADMIN o encargado del local de la franja.")
     public ResponseEntity<FranjaHorariaResponse> update(@PathVariable UUID id,
                                                         @Valid @RequestBody FranjaHorariaRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 
     @DeleteMapping("/delete/{id}")
-    @Operation(summary = "Eliminar una franja horaria")
+    @PreAuthorize("hasRole('ADMIN') or @ownershipService.canEditFranja(#id, principal.id)")
+    @Operation(summary = "Eliminar una franja horaria. ADMIN o encargado del local de la franja.")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
 }
+

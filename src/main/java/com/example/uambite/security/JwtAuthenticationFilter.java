@@ -41,11 +41,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Optional<Usuario> usuarioOpt = usuarioService.findByCarnet(carnet);
                 if (usuarioOpt.isPresent()) {
                     Usuario usuario = usuarioOpt.get();
+                    if (usuario.getRol() == null) {
+                        filterChain.doFilter(request, response);
+                        return;
+                    }
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(
                                     usuario, null,
                                     Collections.singletonList(
-                                            new SimpleGrantedAuthority("ROLE_" + usuario.getRol().toUpperCase())
+                                            new SimpleGrantedAuthority("ROLE_" + usuario.getRol().name())
                                     )
                             );
                     SecurityContextHolder.getContext().setAuthentication(authToken);

@@ -34,8 +34,9 @@ public class Usuario extends BaseEntity {
     @Column(nullable = false)
     private String password;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 30)
-    private String rol;
+    private Rol rol;
 
     @JsonManagedReference(value = "usuario-pedido")
     @OneToMany(mappedBy = "usuario")

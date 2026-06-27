@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class RegisterRequest {
+public class EncargadoCreateRequest {
 
     @NotBlank(message = "El carnet es obligatorio")
     @Size(min = 4, max = 20, message = "El carnet debe tener entre 4 y 20 caracteres")
@@ -35,8 +35,4 @@ public class RegisterRequest {
     @NotBlank(message = "La contraseña es obligatoria")
     @Size(min = 6, max = 100, message = "La contraseña debe tener entre 6 y 100 caracteres")
     private String password;
-
-    @Pattern(regexp = "^(ESTUDIANTE|PROFESOR)$",
-            message = "El rol debe ser ESTUDIANTE o PROFESOR")
-    private String rol;
 }

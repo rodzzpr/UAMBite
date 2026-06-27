@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,21 +24,25 @@ public class DetallePedidoController {
     private final DetallePedidoService service;
 
     @GetMapping("/all")
-    @Operation(summary = "Listar todos los detalles de pedido")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Listar todos los detalles de pedido. Solo ADMIN.")
     public ResponseEntity<List<DetallePedidoResponse>> getAll() {
         return ResponseEntity.ok(service.getAll());
     }
 
     @PostMapping("/save")
-    @Operation(summary = "Agregar un detalle (producto + ingredientes extra) a un pedido PENDIENTE")
+    @PreAuthorize("hasRole('ADMIN') or @ownershipService.canViewPedido(#request.pedidoId, principal.id)")
+    @Operation(summary = "Agregar un detalle a un pedido. ADMIN, dueño del pedido o encargado del local.")
     public ResponseEntity<DetallePedidoResponse> save(@Valid @RequestBody DetallePedidoRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.save(request));
     }
 
     @DeleteMapping("/delete/{id}")
-    @Operation(summary = "Eliminar un detalle de un pedido PENDIENTE")
+    @PreAuthorize("hasRole('ADMIN') or @ownershipService.canManagePedido(#id, principal.id) or @ownershipService.canViewPedido(#id, principal.id)")
+    @Operation(summary = "Eliminar un detalle de un pedido PENDIENTE. ADMIN, dueño del pedido o encargado del local.")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
 }
+

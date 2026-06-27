@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,22 +36,26 @@ public class ProductoController {
     }
 
     @PostMapping("/save")
-    @Operation(summary = "Crear un nuevo producto")
+    @PreAuthorize("hasRole('ADMIN') or @ownershipService.canEditLocal(#request.localComidaId, principal.id)")
+    @Operation(summary = "Crear un nuevo producto. ADMIN o encargado del local destino.")
     public ResponseEntity<ProductoResponse> save(@Valid @RequestBody ProductoRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.save(request));
     }
 
     @PutMapping("/update/{id}")
-    @Operation(summary = "Actualizar un producto")
+    @PreAuthorize("hasRole('ADMIN') or @ownershipService.canEditProducto(#id, principal.id)")
+    @Operation(summary = "Actualizar un producto. ADMIN o encargado del local del producto.")
     public ResponseEntity<ProductoResponse> update(@PathVariable UUID id,
                                                   @Valid @RequestBody ProductoRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 
     @DeleteMapping("/delete/{id}")
-    @Operation(summary = "Eliminar un producto")
+    @PreAuthorize("hasRole('ADMIN') or @ownershipService.canEditProducto(#id, principal.id)")
+    @Operation(summary = "Eliminar un producto. ADMIN o encargado del local del producto.")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
 }
+

@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "local_comida")
@@ -28,6 +29,9 @@ public class LocalComida extends BaseEntity {
     @Column(length = 100)
     private String horario;
 
+    @Column(name = "dueno_id")
+    private UUID duenoId;
+
     @JsonManagedReference(value = "local-producto")
     @OneToMany(mappedBy = "localComida")
     private List<Producto> productos;
@@ -40,3 +44,4 @@ public class LocalComida extends BaseEntity {
     @OneToMany(mappedBy = "localComida")
     private List<FranjaHoraria> franjas;
 }
+

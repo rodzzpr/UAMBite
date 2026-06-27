@@ -7,6 +7,7 @@ import com.example.uambite.exceptions.ConflictException;
 import com.example.uambite.exceptions.ResourceNotFoundException;
 import com.example.uambite.model.*;
 import com.example.uambite.repository.EntregaRepository;
+import com.example.uambite.repository.LocalComidaRepository;
 import com.example.uambite.repository.PedidoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,10 +23,27 @@ public class EntregaService {
 
     private final EntregaRepository repository;
     private final PedidoRepository pedidoRepository;
+    private final LocalComidaRepository localComidaRepository;
 
     @Transactional(readOnly = true)
     public List<EntregaResponse> getAll() {
         return repository.findAll().stream().map(this::toResponse).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<EntregaResponse> findAllByLocalComidaIds(java.util.Collection<UUID> localComidaIds) {
+        return repository.findByPedido_LocalComidaIdIn(localComidaIds).stream()
+                .map(this::toResponse).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<EntregaResponse> getAllForLocalOwner(UUID duenoId) {
+        List<UUID> localIds = localComidaRepository.findByDuenoId(duenoId).stream()
+                .map(LocalComida::getId).toList();
+        if (localIds.isEmpty()) {
+            return List.of();
+        }
+        return findAllByLocalComidaIds(localIds);
     }
 
     @Transactional

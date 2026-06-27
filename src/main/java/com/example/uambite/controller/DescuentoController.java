@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,22 +36,26 @@ public class DescuentoController {
     }
 
     @PostMapping("/save")
-    @Operation(summary = "Crear un nuevo descuento")
+    @PreAuthorize("hasRole('ADMIN') or (#request.localComidaId != null and @ownershipService.canEditLocal(#request.localComidaId, principal.id))")
+    @Operation(summary = "Crear un nuevo descuento. ADMIN o encargado del local asociado.")
     public ResponseEntity<DescuentoResponse> save(@Valid @RequestBody DescuentoRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.save(request));
     }
 
     @PutMapping("/update/{id}")
-    @Operation(summary = "Actualizar un descuento")
+    @PreAuthorize("hasRole('ADMIN') or @ownershipService.canEditDescuento(#id, principal.id)")
+    @Operation(summary = "Actualizar un descuento. ADMIN o encargado del local del descuento.")
     public ResponseEntity<DescuentoResponse> update(@PathVariable UUID id,
                                                     @Valid @RequestBody DescuentoRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 
     @DeleteMapping("/delete/{id}")
-    @Operation(summary = "Eliminar un descuento")
+    @PreAuthorize("hasRole('ADMIN') or @ownershipService.canEditDescuento(#id, principal.id)")
+    @Operation(summary = "Eliminar un descuento. ADMIN o encargado del local del descuento.")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
 }
+

@@ -34,7 +34,7 @@ public class AuthController {
                 request.getNombre(),
                 request.getApellido(),
                 request.getPassword(),
-                request.getRol() != null ? request.getRol() : "CLIENTE",
+                request.getRol(),
                 request.getCorreo());
         String token = jwtUtil.generateToken(response.getCarnet(), response.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(new AuthResponse(

@@ -1,5 +1,6 @@
 package com.example.uambite.dto.response;
 
+import com.example.uambite.model.Rol;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,5 +18,5 @@ public class UsuarioResponse {
     private String nombre;
     private String apellido;
     private String correo;
-    private String rol;
+    private Rol rol;
 }

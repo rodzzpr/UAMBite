@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,27 +24,33 @@ public class UsuarioController {
     private final UsuarioService service;
 
     @GetMapping("/all")
-    @Operation(summary = "Listar todos los usuarios")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Listar todos los usuarios. Solo ADMIN.")
     public ResponseEntity<List<UsuarioResponse>> getAll() {
         return ResponseEntity.ok(service.getAll());
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener un usuario por ID")
+    @PreAuthorize("hasRole('ADMIN') or #id == principal.id")
+    @Operation(summary = "Obtener un usuario por ID. ADMIN o el propio usuario.")
     public ResponseEntity<UsuarioResponse> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(service.getById(id));
     }
 
     @PostMapping("/save")
-    @Operation(summary = "Crear un nuevo usuario (rol CLIENTE por defecto)")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Deprecated
+    @Operation(summary = "DEPRECADO. Use /auth/register (clientes) o /localcomida/save (encargados). Solo ADMIN.")
     public ResponseEntity<UsuarioResponse> save(@Valid @RequestBody UsuarioRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.save(request));
     }
 
     @PutMapping("/update/{id}")
-    @Operation(summary = "Actualizar un usuario existente")
+    @PreAuthorize("hasRole('ADMIN') or #id == principal.id")
+    @Operation(summary = "Actualizar un usuario. ADMIN o el propio usuario (no puede cambiar su rol).")
     public ResponseEntity<UsuarioResponse> update(@PathVariable UUID id,
                                                   @Valid @RequestBody UsuarioRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 }
+

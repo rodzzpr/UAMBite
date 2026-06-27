@@ -11,6 +11,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "pedido")
@@ -31,6 +32,13 @@ public class Pedido extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_entrega", nullable = false, length = 30)
     private TipoEntrega tipoEntrega;
+
+    @Column(name = "local_comida_id")
+    private UUID localComidaId;
+
+    @Column
+    @Builder.Default
+    private Integer prioridad = 0;
 
     @JsonBackReference(value = "usuario-pedido")
     @ManyToOne
@@ -58,3 +66,4 @@ public class Pedido extends BaseEntity {
     @JoinColumn(name = "franja_id")
     private FranjaHoraria franjaHoraria;
 }
+

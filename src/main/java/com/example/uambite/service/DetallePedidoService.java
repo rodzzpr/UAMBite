@@ -79,6 +79,15 @@ public class DetallePedidoService {
             pedido.setDetalles(new ArrayList<>());
         }
         pedido.getDetalles().add(saved);
+
+        if (pedido.getLocalComidaId() == null && producto.getLocalComida() != null) {
+            pedido.setLocalComidaId(producto.getLocalComida().getId());
+        } else if (pedido.getLocalComidaId() != null && producto.getLocalComida() != null
+                && !pedido.getLocalComidaId().equals(producto.getLocalComida().getId())) {
+            throw new BusinessException(
+                    "El producto pertenece a un local distinto al del pedido.");
+        }
+
         pedidoService.recalcularTotal(pedido);
         pedidoRepository.save(pedido);
 

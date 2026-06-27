@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -49,10 +50,22 @@ public class PedidoService {
     private final FranjaHorariaRepository franjaRepository;
     private final DescuentoRepository descuentoRepository;
     private final ProductoRepository productoRepository;
+    private final LocalComidaRepository localComidaRepository;
 
     @Transactional(readOnly = true)
     public List<PedidoResponse> getAll() {
         return repository.findAll().stream().map(this::toResponse).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<PedidoResponse> getAllForLocalOwner(UUID duenoId) {
+        List<UUID> localIds = localComidaRepository.findByDuenoId(duenoId).stream()
+                .map(LocalComida::getId).toList();
+        if (localIds.isEmpty()) {
+            return List.of();
+        }
+        return repository.findByLocalComidaIdInOrderByPrioridadDescCreatedAtAsc(localIds).stream()
+                .map(this::toResponse).toList();
     }
 
     @Transactional(readOnly = true)
@@ -81,6 +94,9 @@ public class PedidoService {
                     .orElseThrow(() -> new ResourceNotFoundException("Franja horaria no encontrada."));
             reservarFranja(franja);
             pedido.setFranjaHoraria(franja);
+            if (franja.getLocalComida() != null) {
+                pedido.setLocalComidaId(franja.getLocalComida().getId());
+            }
         }
 
         if (request.getDescuentoId() != null) {
@@ -168,6 +184,16 @@ public class PedidoService {
     public List<PedidoResponse> getMios(UUID usuarioId) {
         return repository.findByUsuarioId(usuarioId).stream()
                 .map(this::toResponse).toList();
+    }
+
+    @Transactional
+    public PedidoResponse setPrioridad(UUID id, Integer prioridad) {
+        Pedido pedido = findOrThrow(id);
+        if (prioridad == null || prioridad < 0) {
+            throw new BusinessException("La prioridad debe ser un entero >= 0.");
+        }
+        pedido.setPrioridad(prioridad);
+        return toResponse(repository.save(pedido));
     }
 
     @Transactional
@@ -349,6 +375,8 @@ public class PedidoService {
                         ? pedido.getFranjaHoraria().getId() : null)
                 .descuentoId(pedido.getDescuento() != null
                         ? pedido.getDescuento().getId() : null)
+                .localComidaId(pedido.getLocalComidaId())
+                .prioridad(pedido.getPrioridad() == null ? 0 : pedido.getPrioridad())
                 .detalles(detallesResp)
                 .pago(pagoResp)
                 .entrega(entregaResp)

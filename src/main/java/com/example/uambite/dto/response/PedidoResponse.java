@@ -27,6 +27,8 @@ public class PedidoResponse {
     private String usuario;
     private UUID franjaHorariaId;
     private UUID descuentoId;
+    private UUID localComidaId;
+    private Integer prioridad;
     private List<DetallePedidoResponse> detalles;
     private PagoResponse pago;
     private EntregaResponse entrega;

@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,16 +30,19 @@ public class ProductoIngredienteExtraController {
     }
 
     @PostMapping("/save")
-    @Operation(summary = "Asociar un ingrediente extra a un producto")
+    @PreAuthorize("hasRole('ADMIN') or @ownershipService.canEditLocalByProducto(#request.productoId, principal.id)")
+    @Operation(summary = "Asociar un ingrediente extra a un producto. ADMIN o encargado del local del producto.")
     public ResponseEntity<ProductoIngredienteExtraResponse> save(
             @Valid @RequestBody ProductoIngredienteExtraRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.save(request));
     }
 
     @DeleteMapping("/delete/{id}")
-    @Operation(summary = "Eliminar una asociación")
+    @PreAuthorize("hasRole('ADMIN') or @ownershipService.canEditLocalByProducto(#id, principal.id)")
+    @Operation(summary = "Eliminar una asociación. ADMIN o encargado del local del producto asociado.")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
 }
+

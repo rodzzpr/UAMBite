@@ -1,6 +1,9 @@
 package com.example.uambite.controller;
 
+import com.example.uambite.dto.request.EncargadoCreateRequest;
+import com.example.uambite.dto.request.LocalComidaConEncargadoRequest;
 import com.example.uambite.dto.request.LocalComidaRequest;
+import com.example.uambite.dto.response.LocalComidaConEncargadoResponse;
 import com.example.uambite.dto.response.LocalComidaResponse;
 import com.example.uambite.service.LocalComidaService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,6 +12,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,19 +39,31 @@ public class LocalComidaController {
     }
 
     @PostMapping("/save")
-    @Operation(summary = "Crear un nuevo local de comida")
-    public ResponseEntity<LocalComidaResponse> save(@Valid @RequestBody LocalComidaRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.save(request));
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Crear un nuevo local de comida junto con su encargado (atómico)")
+    public ResponseEntity<LocalComidaConEncargadoResponse> save(
+            @Valid @RequestBody LocalComidaConEncargadoRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.crearLocalConEncargado(request));
     }
 
     @PutMapping("/update/{id}")
-    @Operation(summary = "Actualizar un local de comida")
+    @PreAuthorize("hasRole('ADMIN') or @ownershipService.canEditLocal(#id, principal.id)")
+    @Operation(summary = "Actualizar un local de comida (solo el nombre/ubicación/horario)")
     public ResponseEntity<LocalComidaResponse> update(@PathVariable UUID id,
                                                       @Valid @RequestBody LocalComidaRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 
+    @PutMapping("/{id}/asignar-encargado")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Asignar o reasignar el encargado de un local. Crea el usuario si no existe.")
+    public ResponseEntity<LocalComidaConEncargadoResponse> asignarEncargado(
+            @PathVariable UUID id, @Valid @RequestBody EncargadoCreateRequest request) {
+        return ResponseEntity.ok(service.asignarEncargado(id, request));
+    }
+
     @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Eliminar un local de comida")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         service.delete(id);
