@@ -35,7 +35,9 @@ public class SecurityConfig {
                                 "/ingredienteextra/**", "/productoingredienteextra/**",
                                 "/pedido/all", "/pedido/{id}").permitAll()
                         .requestMatchers(HttpMethod.POST, "/pedido/save", "/detallepedido/save",
-                                "/pago/save", "/entrega/save").authenticated()
+                                "/pago/save", "/entrega/save",
+                                "/localcomida/save", "/producto/save",
+                                "/franja/save").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/pedido/**", "/pago/**",
                                 "/entrega/**", "/producto/**", "/localcomida/**",
                                 "/franja/**", "/descuento/**", "/ingredienteextra/**",
