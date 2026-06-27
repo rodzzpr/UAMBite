@@ -42,8 +42,9 @@ public class PagoService {
             throw new BusinessException("No se puede pagar un pedido sin productos.");
         }
 
-        if (pedido.getEstado() != EstadoPedido.PENDIENTE) {
-            throw new BusinessException("Solo se pueden pagar pedidos en estado PENDIENTE. Estado actual: "
+        if (pedido.getEstado() != EstadoPedido.PENDIENTE
+                && pedido.getEstado() != EstadoPedido.CONFIRMADO) {
+            throw new BusinessException("Solo se pueden pagar pedidos en estado PENDIENTE o CONFIRMADO. Estado actual: "
                     + pedido.getEstado());
         }
 
