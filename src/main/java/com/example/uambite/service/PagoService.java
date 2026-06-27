@@ -37,7 +37,8 @@ public class PagoService {
             throw new ConflictException("El pedido ya tiene un pago registrado.");
         }
 
-        if (pedido.getTotal() == null || pedido.getTotal() <= 0) {
+        if (pedido.getTotal() == null
+                || pedido.getTotal().compareTo(java.math.BigDecimal.ZERO) <= 0) {
             throw new BusinessException("No se puede pagar un pedido sin productos.");
         }
 

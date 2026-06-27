@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -23,8 +24,8 @@ public class Pago extends BaseEntity {
     @Column(name = "metodo_pago", nullable = false, length = 30)
     private MetodoPago metodoPago;
 
-    @Column(nullable = false)
-    private Double monto;
+    @Column(nullable = false, precision = 12, scale = 2)
+    private BigDecimal monto;
 
     private LocalDateTime fecha;
 

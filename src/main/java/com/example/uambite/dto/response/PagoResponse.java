@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -17,7 +18,7 @@ import java.util.UUID;
 public class PagoResponse {
     private UUID id;
     private MetodoPago metodoPago;
-    private Double monto;
+    private BigDecimal monto;
     private LocalDateTime fecha;
     private EstadoPago estado;
     private UUID pedidoId;

@@ -202,7 +202,7 @@ class UAMBiteApplicationTests {
         PedidoResponse response = PedidoResponse.builder()
                 .id(UUID.randomUUID())
                 .estado(EstadoPedido.PENDIENTE)
-                .total(0.0)
+                .total(java.math.BigDecimal.ZERO)
                 .build();
 
         when(pedidoService.save(any())).thenReturn(response);
@@ -213,6 +213,37 @@ class UAMBiteApplicationTests {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.estado").value("PENDIENTE"));
+    }
+
+    @Test
+    void testConfirmarPedidoSinDetallesEsRechazado() throws Exception {
+        when(pedidoService.confirmarPedido(any()))
+                .thenThrow(new BusinessException("No se puede confirmar un pedido sin productos."));
+
+        mockMvc.perform(put("/pedido/confirmar/{id}", UUID.randomUUID())
+                        .with(jwtAuth(usuarioAutenticado()))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message")
+                        .value("No se puede confirmar un pedido sin productos."));
+    }
+
+    @Test
+    void testAppNoArrancaSinJwtSecret() {
+        org.springframework.mock.env.MockEnvironment env = new org.springframework.mock.env.MockEnvironment();
+        env.setProperty("spring.datasource.password", "test");
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class, () -> {
+            UAMBiteApplication.validarSecretosObligatorios(env);
+        });
+    }
+
+    @Test
+    void testAppNoArrancaSinDbPassword() {
+        org.springframework.mock.env.MockEnvironment env = new org.springframework.mock.env.MockEnvironment();
+        env.setProperty("jwt.secret", "test_secret_at_least_32_bytes_for_HMAC_256");
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class, () -> {
+            UAMBiteApplication.validarSecretosObligatorios(env);
+        });
     }
 
     private org.springframework.test.web.servlet.request.RequestPostProcessor jwtAuth(Usuario u) {

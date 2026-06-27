@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -15,7 +16,7 @@ import java.util.UUID;
 public class DescuentoResponse {
     private UUID id;
     private String codigo;
-    private Double porcentaje;
+    private BigDecimal porcentaje;
     private LocalDate fechaVencimiento;
     private Boolean activo;
     private String localComida;

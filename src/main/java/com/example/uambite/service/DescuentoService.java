@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -84,7 +85,7 @@ public class DescuentoService {
         return DescuentoResponse.builder()
                 .id(d.getId())
                 .codigo(d.getCodigo())
-                .porcentaje(d.getPorcentaje())
+                .porcentaje(d.getPorcentaje() == null ? BigDecimal.ZERO : d.getPorcentaje())
                 .fechaVencimiento(d.getFechaVencimiento())
                 .activo(d.getActivo())
                 .localComida(d.getLocalComida() != null ? d.getLocalComida().getNombre() : null)

@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "detalle_pedido_ingrediente_extra")
 @Getter
@@ -26,6 +28,6 @@ public class DetallePedidoIngredienteExtra extends BaseEntity {
     @JoinColumn(name = "ingrediente_extra_id", nullable = false)
     private IngredienteExtra ingredienteExtra;
 
-    @Column(name = "precio_adicional", nullable = false)
-    private Double precioAdicional;
+    @Column(name = "precio_adicional", nullable = false, precision = 12, scale = 2)
+    private BigDecimal precioAdicional;
 }

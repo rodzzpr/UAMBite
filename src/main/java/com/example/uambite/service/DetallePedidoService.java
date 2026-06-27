@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -63,13 +64,13 @@ public class DetallePedidoService {
                 .pedido(pedido)
                 .producto(producto)
                 .precioUnitario(producto.getPrecio())
-                .subtotal(producto.getPrecio() * request.getCantidad())
+                .subtotal(producto.getPrecio().multiply(BigDecimal.valueOf(request.getCantidad())))
                 .ingredientesExtra(new ArrayList<>())
                 .build();
 
         if (tieneExtras) {
-            double extrasTotal = cargarExtras(detalle, request.getIngredientesExtraIds());
-            detalle.setSubtotal(detalle.getSubtotal() + extrasTotal);
+            BigDecimal extrasTotal = cargarExtras(detalle, request.getIngredientesExtraIds());
+            detalle.setSubtotal(detalle.getSubtotal().add(extrasTotal));
         }
 
         DetallePedido saved = repository.save(detalle);
@@ -102,8 +103,8 @@ public class DetallePedidoService {
         }
     }
 
-    private double cargarExtras(DetallePedido detalle, List<UUID> ingredienteIds) {
-        double total = 0.0;
+    private BigDecimal cargarExtras(DetallePedido detalle, List<UUID> ingredienteIds) {
+        BigDecimal total = BigDecimal.ZERO;
         for (UUID id : ingredienteIds) {
             IngredienteExtra ing = ingredienteExtraRepository.findById(id)
                     .orElseThrow(() -> new ResourceNotFoundException(
@@ -114,7 +115,7 @@ public class DetallePedidoService {
                     .precioAdicional(ing.getPrecioExtra())
                     .build();
             detalle.getIngredientesExtra().add(rel);
-            total += ing.getPrecioExtra();
+            total = total.add(ing.getPrecioExtra());
         }
         return total;
     }

@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Entity
@@ -24,8 +25,8 @@ public class Pedido extends BaseEntity {
     @Column(nullable = false, length = 30)
     private EstadoPedido estado;
 
-    @Column(nullable = false)
-    private Double total;
+    @Column(nullable = false, precision = 12, scale = 2)
+    private BigDecimal total;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_entrega", nullable = false, length = 30)

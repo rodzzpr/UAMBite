@@ -1,5 +1,7 @@
 package com.example.uambite.dto.request;
 
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -9,6 +11,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Data
@@ -25,8 +28,9 @@ public class ProductoRequest {
     private String descripcion;
 
     @NotNull(message = "El precio es obligatorio")
-    @Positive(message = "El precio debe ser mayor a cero")
-    private Double precio;
+    @DecimalMin(value = "0.01", message = "El precio debe ser mayor a cero")
+    @Digits(integer = 10, fraction = 2, message = "El precio debe tener máximo 2 decimales")
+    private BigDecimal precio;
 
     @NotNull(message = "El stock es obligatorio")
     @Positive(message = "El stock debe ser mayor a cero")

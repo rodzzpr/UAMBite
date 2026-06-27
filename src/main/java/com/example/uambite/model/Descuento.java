@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
@@ -22,8 +23,8 @@ public class Descuento extends BaseEntity {
     @Column(unique = true, nullable = false, length = 50)
     private String codigo;
 
-    @Column(nullable = false)
-    private Double porcentaje;
+    @Column(nullable = false, precision = 5, scale = 2)
+    private BigDecimal porcentaje;
 
     @Column(name = "fecha_vencimiento", nullable = false)
     private LocalDate fechaVencimiento;

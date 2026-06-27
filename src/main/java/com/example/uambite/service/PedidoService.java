@@ -11,6 +11,7 @@ import com.example.uambite.exceptions.InvalidStateException;
 import com.example.uambite.exceptions.ResourceNotFoundException;
 import com.example.uambite.model.*;
 import com.example.uambite.repository.*;
+import com.example.uambite.repository.ProductoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +48,7 @@ public class PedidoService {
     private final UsuarioRepository usuarioRepository;
     private final FranjaHorariaRepository franjaRepository;
     private final DescuentoRepository descuentoRepository;
+    private final ProductoRepository productoRepository;
 
     @Transactional(readOnly = true)
     public List<PedidoResponse> getAll() {
@@ -71,7 +73,7 @@ public class PedidoService {
                 .tipoEntrega(request.getTipoEntrega())
                 .usuario(usuario)
                 .estado(EstadoPedido.PENDIENTE)
-                .total(0.0)
+                .total(BigDecimal.ZERO)
                 .build();
 
         if (request.getFranjaHorariaId() != null) {
@@ -143,6 +145,10 @@ public class PedidoService {
     public PedidoResponse confirmarPedido(UUID id) {
         Pedido pedido = findOrThrow(id);
         EstadoPedidoTransiciones.validar(pedido.getEstado(), EstadoPedido.CONFIRMADO);
+        if (pedido.getDetalles() == null || pedido.getDetalles().isEmpty()) {
+            throw new BusinessException(
+                    "No se puede confirmar un pedido sin productos.");
+        }
         decrementarStock(pedido);
         pedido.setEstado(EstadoPedido.CONFIRMADO);
         return toResponse(repository.save(pedido));
@@ -167,15 +173,19 @@ public class PedidoService {
     @Transactional
     public Pedido recalcularTotal(Pedido pedido) {
         List<DetallePedido> detalles = pedido.getDetalles() == null ? List.of() : pedido.getDetalles();
-        double subtotal = detalles.stream()
-                .mapToDouble(d -> d.getSubtotal() == null ? 0.0 : d.getSubtotal())
-                .sum();
-        double descuentoAplicado = 0.0;
-        if (pedido.getDescuento() != null) {
-            descuentoAplicado = subtotal * (pedido.getDescuento().getPorcentaje() / 100.0);
+        BigDecimal subtotal = detalles.stream()
+                .map(d -> d.getSubtotal() == null ? BigDecimal.ZERO : d.getSubtotal())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal descuentoAplicado = BigDecimal.ZERO;
+        if (pedido.getDescuento() != null && pedido.getDescuento().getPorcentaje() != null) {
+            BigDecimal porcentaje = pedido.getDescuento().getPorcentaje();
+            descuentoAplicado = subtotal.multiply(porcentaje)
+                    .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
         }
-        double total = redondear(subtotal - descuentoAplicado);
-        pedido.setTotal(Math.max(total, 0.0));
+
+        BigDecimal total = subtotal.subtract(descuentoAplicado).setScale(2, RoundingMode.HALF_UP);
+        pedido.setTotal(total.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : total);
         return pedido;
     }
 
@@ -241,6 +251,7 @@ public class PedidoService {
                         "Stock insuficiente para el producto: " + p.getNombre());
             }
             p.setStock(p.getStock() - d.getCantidad());
+            productoRepository.save(p);
         }
     }
 
@@ -250,11 +261,8 @@ public class PedidoService {
             Producto p = d.getProducto();
             if (p == null) continue;
             p.setStock(p.getStock() + d.getCantidad());
+            productoRepository.save(p);
         }
-    }
-
-    private double redondear(double v) {
-        return BigDecimal.valueOf(v).setScale(2, RoundingMode.HALF_UP).doubleValue();
     }
 
     private Pedido findOrThrow(UUID id) {
@@ -275,19 +283,32 @@ public class PedidoService {
                                         .id(e.getId())
                                         .ingredienteExtraId(e.getIngredienteExtra().getId())
                                         .nombre(e.getIngredienteExtra().getNombre())
-                                        .precioAdicional(e.getPrecioAdicional())
+                                        .precioAdicional(e.getPrecioAdicional() == null
+                                                ? BigDecimal.ZERO : e.getPrecioAdicional())
                                         .build())
                                 .toList();
                 return DetallePedidoResponse.builder()
                         .id(d.getId())
                         .cantidad(d.getCantidad())
-                        .precioUnitario(d.getPrecioUnitario())
-                        .subtotal(d.getSubtotal())
+                        .precioUnitario(d.getPrecioUnitario() == null
+                                ? BigDecimal.ZERO : d.getPrecioUnitario())
+                        .subtotal(d.getSubtotal() == null ? BigDecimal.ZERO : d.getSubtotal())
                         .producto(d.getProducto() != null ? d.getProducto().getNombre() : null)
                         .productoId(d.getProducto() != null ? d.getProducto().getId() : null)
                         .ingredientesExtra(extras)
                         .build();
             }).toList();
+        }
+
+        BigDecimal subtotal = pedido.getDetalles() == null ? BigDecimal.ZERO :
+                pedido.getDetalles().stream()
+                        .map(d -> d.getSubtotal() == null ? BigDecimal.ZERO : d.getSubtotal())
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal descuentoAplicado = BigDecimal.ZERO;
+        if (pedido.getDescuento() != null && pedido.getDescuento().getPorcentaje() != null) {
+            descuentoAplicado = subtotal.multiply(pedido.getDescuento().getPorcentaje())
+                    .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
         }
 
         PagoResponse pagoResp = null;
@@ -296,7 +317,7 @@ public class PedidoService {
             pagoResp = PagoResponse.builder()
                     .id(pago.getId())
                     .metodoPago(pago.getMetodoPago())
-                    .monto(pago.getMonto())
+                    .monto(pago.getMonto() == null ? BigDecimal.ZERO : pago.getMonto())
                     .fecha(pago.getFecha())
                     .estado(pago.getEstado())
                     .pedidoId(pedido.getId())
@@ -318,16 +339,9 @@ public class PedidoService {
         return PedidoResponse.builder()
                 .id(pedido.getId())
                 .estado(pedido.getEstado())
-                .total(pedido.getTotal())
-                .subtotal(pedido.getDetalles() == null ? 0.0 :
-                        pedido.getDetalles().stream()
-                                .mapToDouble(d -> d.getSubtotal() == null ? 0.0 : d.getSubtotal())
-                                .sum())
-                .descuentoAplicado(pedido.getDescuento() != null && pedido.getDetalles() != null
-                        ? pedido.getDetalles().stream()
-                            .mapToDouble(d -> d.getSubtotal() == null ? 0.0 : d.getSubtotal()).sum()
-                            * (pedido.getDescuento().getPorcentaje() / 100.0)
-                        : 0.0)
+                .total(pedido.getTotal() == null ? BigDecimal.ZERO : pedido.getTotal())
+                .subtotal(subtotal)
+                .descuentoAplicado(descuentoAplicado)
                 .tipoEntrega(pedido.getTipoEntrega())
                 .usuario(pedido.getUsuario() != null ? pedido.getUsuario().getNombre() : null)
                 .usuarioId(pedido.getUsuario() != null ? pedido.getUsuario().getId() : null)
