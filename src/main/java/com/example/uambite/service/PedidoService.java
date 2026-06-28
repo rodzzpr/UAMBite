@@ -1,5 +1,6 @@
 package com.example.uambite.service;
 
+import com.example.uambite.dto.request.CambioEstadoPedidoRequest;
 import com.example.uambite.dto.request.PedidoRequest;
 import com.example.uambite.dto.response.DetallePedidoIngredienteExtraResponse;
 import com.example.uambite.dto.response.DetallePedidoResponse;
@@ -197,6 +198,41 @@ public class PedidoService {
     }
 
     @Transactional
+    public PedidoResponse cambiarEstado(UUID id, CambioEstadoPedidoRequest request) {
+        Pedido pedido = findOrThrow(id);
+        EstadoPedido nuevoEstado = request.getEstado();
+        EstadoPedidoTransiciones.validar(pedido.getEstado(), nuevoEstado);
+
+        switch (nuevoEstado) {
+            case CONFIRMADO:
+                if (pedido.getDetalles() == null || pedido.getDetalles().isEmpty()) {
+                    throw new BusinessException(
+                            "No se puede confirmar un pedido sin productos.");
+                }
+                decrementarStock(pedido);
+                break;
+            case CANCELADO:
+                if (ESTADOS_CON_STOCK.contains(pedido.getEstado())) {
+                    restaurarStock(pedido);
+                }
+                if (pedido.getFranjaHoraria() != null) {
+                    liberarFranja(pedido.getFranjaHoraria());
+                }
+                break;
+            case EN_PREPARACION:
+            case LISTO:
+                break;
+            default:
+                throw new BusinessException(
+                        "La transición a " + nuevoEstado
+                        + " debe realizarse a través de la gestión de entregas.");
+        }
+
+        pedido.setEstado(nuevoEstado);
+        return toResponse(repository.save(pedido));
+    }
+
+    @Transactional
     public Pedido recalcularTotal(Pedido pedido) {
         List<DetallePedido> detalles = pedido.getDetalles() == null ? List.of() : pedido.getDetalles();
         BigDecimal subtotal = detalles.stream()
@@ -240,31 +276,35 @@ public class PedidoService {
     }
 
     private void reservarFranja(FranjaHoraria franja) {
-        if (!Boolean.TRUE.equals(franja.getDisponible())) {
+        FranjaHoraria locked = franjaRepository.findByIdWithLock(franja.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Franja horaria no encontrada."));
+        if (!Boolean.TRUE.equals(locked.getDisponible())) {
             throw new BusinessException("La franja horaria no está disponible.");
         }
-        if (franja.getPedidosActuales() == null) {
-            franja.setPedidosActuales(0);
+        if (locked.getPedidosActuales() == null) {
+            locked.setPedidosActuales(0);
         }
-        if (franja.getPedidosActuales() >= franja.getCapacidadMaxima()) {
+        if (locked.getPedidosActuales() >= locked.getCapacidadMaxima()) {
             throw new ConflictException("La franja horaria está llena.");
         }
-        franja.setPedidosActuales(franja.getPedidosActuales() + 1);
-        if (franja.getPedidosActuales().equals(franja.getCapacidadMaxima())) {
-            franja.setDisponible(false);
+        locked.setPedidosActuales(locked.getPedidosActuales() + 1);
+        if (locked.getPedidosActuales().equals(locked.getCapacidadMaxima())) {
+            locked.setDisponible(false);
         }
-        franjaRepository.save(franja);
+        franjaRepository.save(locked);
     }
 
     private void liberarFranja(FranjaHoraria franja) {
-        if (franja.getPedidosActuales() == null || franja.getPedidosActuales() <= 0) {
+        FranjaHoraria locked = franjaRepository.findByIdWithLock(franja.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Franja horaria no encontrada."));
+        if (locked.getPedidosActuales() == null || locked.getPedidosActuales() <= 0) {
             return;
         }
-        franja.setPedidosActuales(franja.getPedidosActuales() - 1);
-        if (franja.getPedidosActuales() < franja.getCapacidadMaxima()) {
-            franja.setDisponible(true);
+        locked.setPedidosActuales(locked.getPedidosActuales() - 1);
+        if (locked.getPedidosActuales() < locked.getCapacidadMaxima()) {
+            locked.setDisponible(true);
         }
-        franjaRepository.save(franja);
+        franjaRepository.save(locked);
     }
 
     private void decrementarStock(Pedido pedido) {

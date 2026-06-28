@@ -1,5 +1,6 @@
 package com.example.uambite.controller;
 
+import com.example.uambite.dto.request.CambioEstadoEntregaRequest;
 import com.example.uambite.dto.request.EntregaRequest;
 import com.example.uambite.dto.response.EntregaResponse;
 import com.example.uambite.model.Rol;
@@ -45,9 +46,18 @@ public class EntregaController {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.save(request));
     }
 
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or @ownershipService.canManageEntrega(#id, principal.id)")
+    @Operation(summary = "Cambiar el estado de una entrega. Solo ADMIN o encargado del local del pedido.")
+    public ResponseEntity<EntregaResponse> cambiarEstado(@PathVariable UUID id,
+                                                         @Valid @RequestBody CambioEstadoEntregaRequest request) {
+        return ResponseEntity.ok(service.cambiarEstado(id, request));
+    }
+
+    @Deprecated
     @PutMapping("/finalizar/{id}")
     @PreAuthorize("hasRole('ADMIN') or @ownershipService.canManageEntrega(#id, principal.id)")
-    @Operation(summary = "Finalizar una entrega (EN_CAMINO → ENTREGADO). ADMIN o encargado del local del pedido.")
+    @Operation(summary = "DEPRECADO. Use PUT /entrega/{id} con {\"estado\": \"ENTREGADA\"}.")
     public ResponseEntity<EntregaResponse> finalizarEntrega(@PathVariable UUID id) {
         return ResponseEntity.ok(service.finalizarEntrega(id));
     }

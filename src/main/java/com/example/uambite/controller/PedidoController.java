@@ -1,5 +1,6 @@
 package com.example.uambite.controller;
 
+import com.example.uambite.dto.request.CambioEstadoPedidoRequest;
 import com.example.uambite.dto.request.PedidoRequest;
 import com.example.uambite.dto.request.PrioridadRequest;
 import com.example.uambite.dto.response.PedidoResponse;
@@ -65,32 +66,15 @@ public class PedidoController {
         return ResponseEntity.ok(service.update(id, request));
     }
 
-    @PutMapping("/confirmar/{id}")
-    @PreAuthorize("hasRole('ADMIN') or @ownershipService.canManagePedido(#id, principal.id)")
-    @Operation(summary = "Confirmar pedido (PENDIENTE → CONFIRMADO). Solo ADMIN o encargado del local del pedido.")
-    public ResponseEntity<PedidoResponse> confirmar(@PathVariable UUID id) {
-        return ResponseEntity.ok(service.confirmarPedido(id));
-    }
-
-    @PutMapping("/preparar/{id}")
-    @PreAuthorize("hasRole('ADMIN') or @ownershipService.canManagePedido(#id, principal.id)")
-    @Operation(summary = "Marcar pedido en preparación. Solo ADMIN o encargado del local del pedido.")
-    public ResponseEntity<PedidoResponse> preparar(@PathVariable UUID id) {
-        return ResponseEntity.ok(service.marcarEnPreparacion(id));
-    }
-
-    @PutMapping("/listo/{id}")
-    @PreAuthorize("hasRole('ADMIN') or @ownershipService.canManagePedido(#id, principal.id)")
-    @Operation(summary = "Marcar pedido como listo. Solo ADMIN o encargado del local del pedido.")
-    public ResponseEntity<PedidoResponse> listo(@PathVariable UUID id) {
-        return ResponseEntity.ok(service.marcarListo(id));
-    }
-
-    @PutMapping("/cancelar/{id}")
-    @PreAuthorize("hasRole('ADMIN') or @ownershipService.canViewPedido(#id, principal.id)")
-    @Operation(summary = "Cancelar pedido. ADMIN, dueño del pedido o encargado del local del pedido.")
-    public ResponseEntity<PedidoResponse> cancelar(@PathVariable UUID id) {
-        return ResponseEntity.ok(service.cancelarPedido(id));
+    @PutMapping("/{id}/estado")
+    @PreAuthorize("hasRole('ADMIN') or "
+            + "(#request.estado.name() == 'CANCELADO'"
+            + " ? @ownershipService.canViewPedido(#id, principal.id)"
+            + " : @ownershipService.canManagePedido(#id, principal.id))")
+    @Operation(summary = "Cambiar el estado de un pedido. CANCELADO: ADMIN, dueño o encargado. Otros: ADMIN o encargado del local.")
+    public ResponseEntity<PedidoResponse> cambiarEstado(@PathVariable UUID id,
+                                                        @Valid @RequestBody CambioEstadoPedidoRequest request) {
+        return ResponseEntity.ok(service.cambiarEstado(id, request));
     }
 
     @PutMapping("/{id}/prioridad")
@@ -99,6 +83,38 @@ public class PedidoController {
     public ResponseEntity<PedidoResponse> setPrioridad(@PathVariable UUID id,
                                                        @Valid @RequestBody PrioridadRequest body) {
         return ResponseEntity.ok(service.setPrioridad(id, body.getPrioridad()));
+    }
+
+    @Deprecated
+    @PutMapping("/confirmar/{id}")
+    @PreAuthorize("hasRole('ADMIN') or @ownershipService.canManagePedido(#id, principal.id)")
+    @Operation(summary = "DEPRECADO. Use PUT /pedido/{id}/estado con {\"estado\": \"CONFIRMADO\"}.")
+    public ResponseEntity<PedidoResponse> confirmar(@PathVariable UUID id) {
+        return ResponseEntity.ok(service.confirmarPedido(id));
+    }
+
+    @Deprecated
+    @PutMapping("/preparar/{id}")
+    @PreAuthorize("hasRole('ADMIN') or @ownershipService.canManagePedido(#id, principal.id)")
+    @Operation(summary = "DEPRECADO. Use PUT /pedido/{id}/estado con {\"estado\": \"EN_PREPARACION\"}.")
+    public ResponseEntity<PedidoResponse> preparar(@PathVariable UUID id) {
+        return ResponseEntity.ok(service.marcarEnPreparacion(id));
+    }
+
+    @Deprecated
+    @PutMapping("/listo/{id}")
+    @PreAuthorize("hasRole('ADMIN') or @ownershipService.canManagePedido(#id, principal.id)")
+    @Operation(summary = "DEPRECADO. Use PUT /pedido/{id}/estado con {\"estado\": \"LISTO\"}.")
+    public ResponseEntity<PedidoResponse> listo(@PathVariable UUID id) {
+        return ResponseEntity.ok(service.marcarListo(id));
+    }
+
+    @Deprecated
+    @PutMapping("/cancelar/{id}")
+    @PreAuthorize("hasRole('ADMIN') or @ownershipService.canViewPedido(#id, principal.id)")
+    @Operation(summary = "DEPRECADO. Use PUT /pedido/{id}/estado con {\"estado\": \"CANCELADO\"}.")
+    public ResponseEntity<PedidoResponse> cancelar(@PathVariable UUID id) {
+        return ResponseEntity.ok(service.cancelarPedido(id));
     }
 
     @DeleteMapping("/delete/{id}")

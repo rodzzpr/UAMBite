@@ -1,5 +1,6 @@
 package com.example.uambite.service;
 
+import com.example.uambite.dto.request.CambioEstadoEntregaRequest;
 import com.example.uambite.dto.request.EntregaRequest;
 import com.example.uambite.dto.response.EntregaResponse;
 import com.example.uambite.exceptions.BusinessException;
@@ -96,6 +97,16 @@ public class EntregaService {
         repository.save(entrega);
         pedidoRepository.save(pedido);
         return toResponse(entrega);
+    }
+
+    @Transactional
+    public EntregaResponse cambiarEstado(UUID entregaId, CambioEstadoEntregaRequest request) {
+        EstadoEntrega nuevoEstado = request.getEstado();
+        if (nuevoEstado != EstadoEntrega.ENTREGADA) {
+            throw new BusinessException(
+                    "Solo se permite transicionar la entrega a ENTREGADA desde este endpoint.");
+        }
+        return finalizarEntrega(entregaId);
     }
 
     private EntregaResponse toResponse(Entrega entrega) {

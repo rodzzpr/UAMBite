@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UAMBite</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<style>
+  body { background: #f3f4f6; }
+  .phone-frame {
+    width: 100%; max-width: 28rem; margin: 0 auto; min-height: 100vh;
+    background: #fff; box-shadow: 0 0 30px rgba(0,0,0,.12); position: relative;
+  }
+  .nav-bottom { position: sticky; bottom: 0; z-index: 50; }
+  .nav-item { transition: color .2s; }
+  .nav-item.active { color: #3b82f6; }
+  .card-tap:active { transform: scale(.98); transition: transform .1s; }
+  .fade-in { animation: fadeIn .25s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body class="flex justify-center">
+
+<div class="phone-frame flex flex-col">
+
+  <!-- ========== LOGIN ========== -->
+  <div id="vista-login" class="flex-1 flex flex-col justify-center px-6 fade-in">
+    <div class="text-center mb-8">
+      <i class="fa-solid fa-utensils text-5xl text-blue-600 mb-3"></i>
+      <h1 class="text-2xl font-bold text-gray-800">UAMBite</h1>
+      <p class="text-gray-500 text-sm">Pedidos de comida UAM</p>
+    </div>
+    <form id="form-login" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Carnet</label>
+        <input id="login-carnet" type="text" required placeholder="ADMIN001"
+          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+        <input id="login-password" type="password" required placeholder="••••••••"
+          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+      </div>
+      <button type="submit"
+        class="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition">
+        <i class="fa-solid fa-right-to-bracket mr-2"></i>Iniciar Sesión
+      </button>
+    </form>
+    <p class="text-center text-sm text-gray-500 mt-6">
+      ¿No tienes cuenta?
+      <button onclick="mostrarVista('register')" class="text-blue-600 font-medium">Regístrate</button>
+    </p>
+  </div>
+
+  <!-- ========== REGISTER ========== -->
+  <div id="vista-register" class="flex-1 flex-col justify-center px-6 hidden">
+    <div class="flex items-center mb-6 mt-6">
+      <button onclick="mostrarVista('login')" class="text-blue-600 mr-3"><i class="fa-solid fa-arrow-left text-xl"></i></button>
+      <h2 class="text-xl font-bold text-gray-800">Crear Cuenta</h2>
+    </div>
+    <form id="form-register" class="space-y-3">
+      <input id="reg-carnet" type="text" required placeholder="Carnet"
+        class="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+      <input id="reg-nombre" type="text" required placeholder="Nombre"
+        class="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+      <input id="reg-apellido" type="text" required placeholder="Apellido"
+        class="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+      <input id="reg-correo" type="email" required placeholder="Correo"
+        class="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+      <input id="reg-password" type="password" required placeholder="Contraseña"
+        class="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+      <select id="reg-rol" required
+        class="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+        <option value="ESTUDIANTE">Estudiante</option>
+        <option value="PROFESOR">Profesor</option>
+      </select>
+      <button type="submit"
+        class="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition">
+        <i class="fa-solid fa-user-plus mr-2"></i>Registrarse
+      </button>
+    </form>
+  </div>
+
+  <!-- ========== HOME ========== -->
+  <div id="vista-home" class="flex-1 flex flex-col hidden">
+    <div class="p-4 pb-2">
+      <h2 class="text-xl font-bold text-gray-800"><i class="fa-solid fa-shop mr-2 text-blue-600"></i>Locales</h2>
+    </div>
+    <div id="locales-container" class="flex-1 overflow-y-auto px-4 pb-4 space-y-3"></div>
+  </div>
+
+  <!-- ========== CART ========== -->
+  <div id="vista-cart" class="flex-1 flex flex-col hidden">
+    <div class="p-4 pb-2 border-b border-gray-100">
+      <h2 class="text-xl font-bold text-gray-800"><i class="fa-solid fa-cart-shopping mr-2 text-blue-600"></i>Carrito</h2>
+    </div>
+    <div id="cart-items" class="flex-1 overflow-y-auto px-4 py-3 space-y-3"></div>
+    <div id="cart-footer" class="p-4 border-t border-gray-200 space-y-3 hidden">
+      <div class="flex justify-between font-bold text-lg"><span>Total</span><span id="cart-total">$0.00</span></div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Franja Horaria</label>
+        <select id="cart-franja" class="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none bg-white"></select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Entrega</label>
+        <select id="cart-tipo-entrega" class="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none bg-white">
+          <option value="RETIRO_LOCAL">Retiro en Local</option>
+          <option value="ENTREGA_INTERNA">Entrega Interna</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Método de Pago</label>
+        <select id="cart-metodo-pago" class="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none bg-white">
+          <option value="EFECTIVO">Efectivo</option>
+          <option value="TARJETA">Tarjeta</option>
+          <option value="TRANSFERENCIA">Transferencia</option>
+        </select>
+      </div>
+      <button id="btn-checkout"
+        class="w-full bg-green-600 text-white py-3 rounded-xl font-semibold hover:bg-green-700 transition">
+        <i class="fa-solid fa-check mr-2"></i>Confirmar Pedido
+      </button>
+    </div>
+    <div id="cart-empty" class="flex-1 flex items-center justify-center text-gray-400">
+      <div class="text-center"><i class="fa-solid fa-cart-shopping text-5xl mb-3"></i><p>Carrito vacío</p></div>
+    </div>
+  </div>
+
+  <!-- ========== ORDERS ========== -->
+  <div id="vista-orders" class="flex-1 flex flex-col hidden">
+    <div class="p-4 pb-2 border-b border-gray-100">
+      <h2 class="text-xl font-bold text-gray-800"><i class="fa-solid fa-clipboard-list mr-2 text-blue-600"></i>Mis Pedidos</h2>
+    </div>
+    <div id="orders-container" class="flex-1 overflow-y-auto px-4 py-3 space-y-3"></div>
+  </div>
+
+  <!-- ========== ADMIN ========== -->
+  <div id="vista-admin" class="flex-1 flex flex-col hidden">
+    <div class="p-4 pb-2 border-b border-gray-100">
+      <h2 class="text-xl font-bold text-gray-800"><i class="fa-solid fa-gear mr-2 text-blue-600"></i>Panel Admin</h2>
+    </div>
+    <div class="flex gap-2 px-4 py-2 border-b border-gray-100">
+      <button onclick="cargarAdminPedidos()" id="tab-admin-pedidos"
+        class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium transition">Pedidos</button>
+      <button onclick="cargarAdminUsuarios()" id="tab-admin-usuarios"
+        class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 text-sm font-medium transition">Usuarios</button>
+    </div>
+    <div id="admin-content" class="flex-1 overflow-y-auto px-4 py-3 space-y-3"></div>
+  </div>
+
+  <!-- ========== BOTTOM NAV ========== -->
+  <div id="nav-bottom" class="nav-bottom bg-white border-t border-gray-200 px-2 py-2 flex justify-around items-center hidden">
+    <button onclick="mostrarVista('home')" data-nav="home" class="nav-item active flex flex-col items-center text-xs text-gray-400">
+      <i class="fa-solid fa-house text-xl"></i><span>Inicio</span></button>
+    <button onclick="mostrarVista('cart')" data-nav="cart" class="nav-item flex flex-col items-center text-xs text-gray-400">
+      <i class="fa-solid fa-cart-shopping text-xl"></i><span id="cart-badge" class="relative">Carrito<span id="cart-count" class="hidden absolute -top-2 -right-5 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span></span></button>
+    <button onclick="mostrarVista('orders')" data-nav="orders" class="nav-item flex flex-col items-center text-xs text-gray-400">
+      <i class="fa-solid fa-receipt text-xl"></i><span>Pedidos</span></button>
+    <button id="nav-admin-btn" onclick="mostrarVista('admin')" data-nav="admin" class="nav-item flex flex-col items-center text-xs text-gray-400 hidden">
+      <i class="fa-solid fa-gear text-xl"></i><span>Admin</span></button>
+    <button onclick="cerrarSesion()" class="nav-item flex flex-col items-center text-xs text-gray-400">
+      <i class="fa-solid fa-right-from-bracket text-xl"></i><span>Salir</span></button>
+  </div>
+
+</div>
+
+<script>
+// ==================== ESTADO GLOBAL ====================
+const API = 'http://localhost:8090/api';
+let state = {
+  token: null, user: null,
+  locales: [], productos: [],
+  cart: [], franjas: [],
+  pedidoActual: null
+};
+
+// ==================== PERSISTENCIA ====================
+function guardarSesion(data) {
+  state.token = data.token; state.user = data;
+  localStorage.setItem('uambite_token', data.token);
+  localStorage.setItem('uambite_user', JSON.stringify(data));
+}
+function cargarSesion() {
+  const t = localStorage.getItem('uambite_token');
+  const u = localStorage.getItem('uambite_user');
+  if (t && u) { state.token = t; state.user = JSON.parse(u); return true; }
+  return false;
+}
+function cerrarSesion() {
+  localStorage.clear(); state.token = null; state.user = null; state.cart = [];
+  actualizarBadge(); mostrarVista('login');
+}
+
+// ==================== HELPERS API ====================
+async function apiCall(method, path, body = null, auth = true) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (auth && state.token) opts.headers['Authorization'] = 'Bearer ' + state.token;
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(API + path, opts);
+  if (!res.ok) {
+    let msg = `Error ${res.status}`;
+    try { const e = await res.json(); msg = e.message || e.error || msg; } catch (_) {}
+    throw new Error(msg);
+  }
+  if (res.status === 204) return null;
+  return res.json();
+}
+
+// ==================== NAVEGACIÓN SPA ====================
+function mostrarVista(vista) {
+  const vistas = ['login','register','home','cart','orders','admin'];
+  vistas.forEach(v => document.getElementById('vista-' + v).classList.add('hidden'));
+  document.getElementById('vista-' + vista).classList.remove('hidden');
+
+  // Navbar solo visible si hay sesión y no es login/register
+  const nav = document.getElementById('nav-bottom');
+  const authViews = ['login','register'];
+  if (authViews.includes(vista)) {
+    nav.classList.add('hidden');
+  } else {
+    nav.classList.remove('hidden');
+    // Marcar nav activo
+    document.querySelectorAll('.nav-item[data-nav]').forEach(b => b.classList.remove('active'));
+    const btn = document.querySelector(`[data-nav="${vista}"]`);
+    if (btn) btn.classList.add('active');
+  }
+
+  // Cargar datos según vista
+  if (vista === 'home') cargarHome();
+  else if (vista === 'cart') renderCart();
+  else if (vista === 'orders') cargarPedidos();
+  else if (vista === 'admin') cargarAdminPedidos();
+}
+
+// ==================== LOGIN / REGISTER ====================
+document.getElementById('form-login').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  try {
+    const data = await apiCall('POST', '/auth/login', {
+      carnet: document.getElementById('login-carnet').value.trim(),
+      password: document.getElementById('login-password').value
+    }, false);
+    guardarSesion(data);
+    // Mostrar admin tab si es ADMIN
+    if (data.rol === 'ADMIN') {
+      document.getElementById('nav-admin-btn').classList.remove('hidden');
+    }
+    Swal.fire({ icon: 'success', title: `Bienvenido, ${data.nombre}!`, timer: 1500, showConfirmButton: false });
+    state.cart = JSON.parse(localStorage.getItem('uambite_cart_' + data.id) || '[]');
+    actualizarBadge();
+    mostrarVista('home');
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'Error', text: err.message });
+  }
+});
+
+document.getElementById('form-register').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  try {
+    const data = await apiCall('POST', '/auth/register', {
+      carnet: document.getElementById('reg-carnet').value.trim(),
+      nombre: document.getElementById('reg-nombre').value.trim(),
+      apellido: document.getElementById('reg-apellido').value.trim(),
+      correo: document.getElementById('reg-correo').value.trim(),
+      password: document.getElementById('reg-password').value,
+      rol: document.getElementById('reg-rol').value
+    }, false);
+    guardarSesion(data);
+    Swal.fire({ icon: 'success', title: 'Cuenta creada!', timer: 1500, showConfirmButton: false });
+    mostrarVista('home');
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'Error', text: err.message });
+  }
+});
+
+// ==================== HOME - LOCALES Y PRODUCTOS ====================
+async function cargarHome() {
+  try {
+    const [locales, productos] = await Promise.all([
+      apiCall('GET', '/localcomida/all', null, false),
+      apiCall('GET', '/producto/all', null, false)
+    ]);
+    state.locales = locales; state.productos = productos;
+    renderLocales();
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'Error al cargar', text: err.message });
+  }
+}
+
+function renderLocales() {
+  const container = document.getElementById('locales-container');
+  container.innerHTML = state.locales.map(l => {
+    const prods = state.productos.filter(p => p.localComida === l.nombre);
+    return `
+      <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm card-tap">
+        <div class="flex items-start justify-between mb-3">
+          <div>
+            <h3 class="font-bold text-lg text-gray-800"><i class="fa-solid fa-store text-blue-500 mr-2"></i>${l.nombre}</h3>
+            <p class="text-xs text-gray-500"><i class="fa-solid fa-location-dot mr-1"></i>${l.ubicacion}</p>
+            <p class="text-xs text-gray-400"><i class="fa-regular fa-clock mr-1"></i>${l.horario || 'Sin horario'}</p>
+          </div>
+        </div>
+        ${prods.length === 0 ? '<p class="text-gray-400 text-sm italic">Sin productos aún</p>' : ''}
+        <div class="space-y-2">
+          ${prods.map(p => `
+            <div class="flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2">
+              <div class="flex-1 min-w-0">
+                <p class="font-medium text-sm text-gray-800 truncate">${p.nombre}</p>
+                <p class="text-xs text-gray-500 truncate">${p.descripcion || ''}</p>
+                <p class="text-blue-600 font-bold text-sm">$${Number(p.precio).toFixed(2)}</p>
+              </div>
+              <button onclick="agregarAlCarrito('${p.id}','${p.nombre.replace(/'/g,"\\'")}',${p.precio},'${l.nombre.replace(/'/g,"\\'")}','${l.id}')"
+                class="ml-2 bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-blue-700 transition flex-shrink-0">
+                <i class="fa-solid fa-plus mr-1"></i>Agregar
+              </button>
+            </div>
+          `).join('')}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ==================== CARRITO ====================
+function agregarAlCarrito(prodId, nombre, precio, localNombre, localId) {
+  const existing = state.cart.find(i => i.productoId === prodId);
+  if (existing) {
+    existing.cantidad++;
+  } else {
+    state.cart.push({ productoId: prodId, nombre, precio, cantidad: 1, localNombre, localComidaId: localId });
+  }
+  persistirCarrito();
+  actualizarBadge();
+  Swal.fire({ icon: 'success', title: 'Agregado', text: `${nombre} al carrito`, timer: 1000, showConfirmButton: false });
+}
+
+function persistirCarrito() {
+  if (state.user) localStorage.setItem('uambite_cart_' + state.user.id, JSON.stringify(state.cart));
+}
+
+function actualizarBadge() {
+  const count = state.cart.reduce((s, i) => s + i.cantidad, 0);
+  const el = document.getElementById('cart-count');
+  el.textContent = count;
+  el.classList.toggle('hidden', count === 0);
+}
+
+function renderCart() {
+  const container = document.getElementById('cart-items');
+  const footer = document.getElementById('cart-footer');
+  const empty = document.getElementById('cart-empty');
+
+  if (state.cart.length === 0) {
+    container.innerHTML = ''; footer.classList.add('hidden'); empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden'); footer.classList.remove('hidden');
+
+  const total = state.cart.reduce((s, i) => s + i.precio * i.cantidad, 0);
+  document.getElementById('cart-total').textContent = '$' + total.toFixed(2);
+
+  container.innerHTML = state.cart.map((item, idx) => `
+    <div class="flex items-center justify-between bg-gray-50 rounded-xl px-3 py-3">
+      <div class="flex-1 min-w-0">
+        <p class="font-medium text-sm text-gray-800 truncate">${item.nombre}</p>
+        <p class="text-xs text-gray-500">$${Number(item.precio).toFixed(2)} c/u — ${item.localNombre}</p>
+      </div>
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <button onclick="cambiarCantidad(${idx},-1)" class="w-8 h-8 rounded-full bg-gray-200 text-gray-600 font-bold hover:bg-gray-300">−</button>
+        <span class="w-6 text-center font-semibold">${item.cantidad}</span>
+        <button onclick="cambiarCantidad(${idx},1)" class="w-8 h-8 rounded-full bg-gray-200 text-gray-600 font-bold hover:bg-gray-300">+</button>
+        <button onclick="removerDelCarrito(${idx})" class="ml-1 text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button>
+      </div>
+    </div>
+  `).join('');
+
+  cargarFranjas();
+}
+
+function cambiarCantidad(idx, delta) {
+  state.cart[idx].cantidad += delta;
+  if (state.cart[idx].cantidad <= 0) state.cart.splice(idx, 1);
+  persistirCarrito(); actualizarBadge(); renderCart();
+}
+
+function removerDelCarrito(idx) {
+  state.cart.splice(idx, 1);
+  persistirCarrito(); actualizarBadge(); renderCart();
+}
+
+async function cargarFranjas() {
+  try {
+    state.franjas = await apiCall('GET', '/franja/disponibles', null, false);
+    const sel = document.getElementById('cart-franja');
+    sel.innerHTML = state.franjas.map(f =>
+      `<option value="${f.id}">${f.horaInicio} - ${f.horaFin} (${f.pedidosActuales}/${f.capacidadMaxima}) — ${f.localComida || ''}</option>`
+    ).join('');
+    if (state.franjas.length === 0) sel.innerHTML = '<option value="">No hay franjas disponibles</option>';
+  } catch (err) { /* silencioso */ }
+}
+
+// ==================== CHECKOUT ====================
+document.getElementById('btn-checkout').addEventListener('click', async () => {
+  const franjaId = document.getElementById('cart-franja').value;
+  const tipoEntrega = document.getElementById('cart-tipo-entrega').value;
+  const metodoPago = document.getElementById('cart-metodo-pago').value;
+
+  if (!franjaId) { Swal.fire({ icon: 'warning', title: 'Selecciona una franja horaria' }); return; }
+  if (state.cart.length === 0) { Swal.fire({ icon: 'warning', title: 'Carrito vacío' }); return; }
+
+  try {
+    Swal.fire({ title: 'Procesando pedido...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+    // 1. Crear pedido
+    const pedido = await apiCall('POST', '/pedido/save', {
+      tipoEntrega, usuarioId: state.user.id, franjaHorariaId: franjaId
+    });
+    state.pedidoActual = pedido;
+
+    // 2. Agregar detalles
+    for (const item of state.cart) {
+      await apiCall('POST', '/detallepedido/save', {
+        pedidoId: pedido.id, productoId: item.productoId, cantidad: item.cantidad, ingredientesExtraIds: []
+      });
+    }
+
+    // 3. Registrar pago
+    await apiCall('POST', '/pago/save', { metodoPago, pedidoId: pedido.id });
+
+    state.cart = []; persistirCarrito(); actualizarBadge();
+    Swal.fire({ icon: 'success', title: 'Pedido creado!', text: 'Tu pedido ha sido registrado correctamente.', confirmButtonText: 'Ver mis pedidos' })
+      .then(r => { if (r.isConfirmed) mostrarVista('orders'); });
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'Error', text: err.message });
+  }
+});
+
+// ==================== MIS PEDIDOS ====================
+async function cargarPedidos() {
+  try {
+    const pedidos = await apiCall('GET', '/pedido/mios');
+    const container = document.getElementById('orders-container');
+    if (!pedidos || pedidos.length === 0) {
+      container.innerHTML = '<div class="text-center text-gray-400 py-10"><i class="fa-solid fa-inbox text-5xl mb-3"></i><p>No tienes pedidos aún</p></div>';
+      return;
+    }
+    container.innerHTML = pedidos.map(p => {
+      const color = { PENDIENTE:'bg-yellow-100 text-yellow-800', CONFIRMADO:'bg-blue-100 text-blue-800',
+        EN_PREPARACION:'bg-purple-100 text-purple-800', LISTO:'bg-green-100 text-green-800',
+        EN_CAMINO:'bg-orange-100 text-orange-800', ENTREGADO:'bg-green-200 text-green-900',
+        CANCELADO:'bg-red-100 text-red-800' }[p.estado] || 'bg-gray-100';
+      const dt = p.detalles ? p.detalles.map(d => `<li class="text-xs text-gray-600">${d.cantidad}x ${d.producto} — $${Number(d.subtotal).toFixed(2)}</li>`).join('') : '';
+      return `
+        <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs text-gray-400">${p.createdAt ? new Date(p.createdAt).toLocaleString() : ''}</span>
+            <span class="px-2 py-1 rounded-full text-xs font-semibold ${color}">${p.estado}</span>
+          </div>
+          <p class="font-bold text-lg text-gray-800">$${Number(p.total).toFixed(2)}</p>
+          <p class="text-xs text-gray-500">${p.tipoEntrega === 'RETIRO_LOCAL' ? 'Retiro en local' : 'Entrega interna'}</p>
+          ${dt ? `<ul class="mt-2 space-y-1">${dt}</ul>` : ''}
+          ${p.descuentoAplicado > 0 ? `<p class="text-xs text-green-600 mt-1">Descuento: -$${Number(p.descuentoAplicado).toFixed(2)}</p>` : ''}
+          ${p.estado === 'PENDIENTE' ? `<button onclick="cancelarPedido('${p.id}')" class="mt-2 text-red-600 text-sm font-medium hover:underline"><i class="fa-solid fa-ban mr-1"></i>Cancelar</button>` : ''}
+        </div>`;
+    }).join('');
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'Error', text: err.message });
+  }
+}
+
+async function cancelarPedido(id) {
+  const r = await Swal.fire({ title: 'Cancelar pedido?', text: 'Esta acción no se puede deshacer.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Sí, cancelar', cancelButtonText: 'No' });
+  if (!r.isConfirmed) return;
+  try {
+    await apiCall('PUT', `/pedido/${id}/estado`, { estado: 'CANCELADO' });
+    Swal.fire({ icon: 'success', title: 'Pedido cancelado' });
+    cargarPedidos();
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'Error', text: err.message });
+  }
+}
+
+// ==================== ADMIN ====================
+async function cargarAdminPedidos() {
+  document.getElementById('tab-admin-pedidos').className = 'px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium transition';
+  document.getElementById('tab-admin-usuarios').className = 'px-4 py-2 rounded-lg bg-gray-200 text-gray-700 text-sm font-medium transition';
+  try {
+    const pedidos = await apiCall('GET', '/pedido/all');
+    const container = document.getElementById('admin-content');
+    if (!pedidos || pedidos.length === 0) {
+      container.innerHTML = '<p class="text-gray-400 text-center py-10">No hay pedidos</p>'; return;
+    }
+    container.innerHTML = pedidos.map(p => {
+      const color = { PENDIENTE:'bg-yellow-100 text-yellow-800', CONFIRMADO:'bg-blue-100 text-blue-800',
+        EN_PREPARACION:'bg-purple-100 text-purple-800', LISTO:'bg-green-100 text-green-800',
+        EN_CAMINO:'bg-orange-100 text-orange-800', ENTREGADO:'bg-green-200 text-green-900',
+        CANCELADO:'bg-red-100 text-red-800' }[p.estado] || 'bg-gray-100';
+      const dt = p.detalles ? p.detalles.map(d => `<li class="text-xs text-gray-600">${d.cantidad}x ${d.producto} — $${Number(d.subtotal).toFixed(2)}</li>`).join('') : '';
+      const btns = [];
+      if (p.estado === 'PENDIENTE') btns.push(`<button onclick="adminTransicion('${p.id}','CONFIRMADO')" class="bg-blue-600 text-white px-2 py-1 rounded text-xs">Confirmar</button>`);
+      if (p.estado === 'CONFIRMADO') btns.push(`<button onclick="adminTransicion('${p.id}','EN_PREPARACION')" class="bg-purple-600 text-white px-2 py-1 rounded text-xs">Preparar</button>`);
+      if (p.estado === 'EN_PREPARACION') btns.push(`<button onclick="adminTransicion('${p.id}','LISTO')" class="bg-green-600 text-white px-2 py-1 rounded text-xs">Listo</button>`);
+      if (['PENDIENTE','CONFIRMADO','EN_PREPARACION'].includes(p.estado)) btns.push(`<button onclick="adminTransicion('${p.id}','CANCELADO')" class="bg-red-600 text-white px-2 py-1 rounded text-xs">Cancelar</button>`);
+      return `
+        <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs text-gray-500 font-mono">${p.id ? p.id.substring(0,8) : ''}...</span>
+            <span class="px-2 py-1 rounded-full text-xs font-semibold ${color}">${p.estado}</span>
+          </div>
+          <p class="text-sm"><span class="font-medium">Cliente:</span> ${p.usuario || '—'}</p>
+          <p class="font-bold text-lg text-gray-800">$${Number(p.total).toFixed(2)}</p>
+          <p class="text-xs text-gray-500">Prioridad: ${p.prioridad || 0} | ${p.tipoEntrega || '—'}</p>
+          ${dt ? `<ul class="mt-2 space-y-1">${dt}</ul>` : ''}
+          ${btns.length ? `<div class="flex gap-2 mt-3">${btns.join('')}</div>` : ''}
+        </div>`;
+    }).join('');
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'Error', text: err.message });
+  }
+}
+
+async function adminTransicion(pedidoId, estado) {
+  try {
+    await apiCall('PUT', `/pedido/${pedidoId}/estado`, { estado });
+    Swal.fire({ icon: 'success', title: `Pedido → ${estado}`, timer: 1000, showConfirmButton: false });
+    cargarAdminPedidos();
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'Error', text: err.message });
+  }
+}
+
+async function cargarAdminUsuarios() {
+  document.getElementById('tab-admin-pedidos').className = 'px-4 py-2 rounded-lg bg-gray-200 text-gray-700 text-sm font-medium transition';
+  document.getElementById('tab-admin-usuarios').className = 'px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium transition';
+  try {
+    const usuarios = await apiCall('GET', '/usuario/all');
+    const container = document.getElementById('admin-content');
+    const rolColor = { ADMIN:'bg-red-100 text-red-800', LOCAL:'bg-blue-100 text-blue-800',
+      ESTUDIANTE:'bg-green-100 text-green-800', PROFESOR:'bg-purple-100 text-purple-800' };
+    container.innerHTML = usuarios.map(u => `
+      <div class="bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-between">
+        <div>
+          <p class="font-medium text-gray-800">${u.nombre} ${u.apellido}</p>
+          <p class="text-xs text-gray-500">${u.carnet} — ${u.correo || ''}</p>
+        </div>
+        <span class="px-2 py-1 rounded-full text-xs font-semibold ${rolColor[u.rol] || 'bg-gray-100'}">${u.rol}</span>
+      </div>
+    `).join('');
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'Error', text: err.message });
+  }
+}
+
+// ==================== INICIALIZACIÓN ====================
+(function init() {
+  if (cargarSesion()) {
+    // Restaurar carrito persistido
+    state.cart = JSON.parse(localStorage.getItem('uambite_cart_' + state.user.id) || '[]');
+    actualizarBadge();
+    if (state.user.rol === 'ADMIN') document.getElementById('nav-admin-btn').classList.remove('hidden');
+    mostrarVista('home');
+  } else {
+    mostrarVista('login');
+  }
+})();
+</script>
+
+</body>
+</html>
