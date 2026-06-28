@@ -5,6 +5,7 @@ import com.example.uambite.repository.DescuentoRepository;
 import com.example.uambite.repository.EntregaRepository;
 import com.example.uambite.repository.FranjaHorariaRepository;
 import com.example.uambite.repository.LocalComidaRepository;
+import com.example.uambite.repository.PagoRepository;
 import com.example.uambite.repository.PedidoRepository;
 import com.example.uambite.repository.ProductoRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ public class OwnershipService {
     private final DescuentoRepository descuentoRepository;
     private final PedidoRepository pedidoRepository;
     private final EntregaRepository entregaRepository;
+    private final PagoRepository pagoRepository;
 
     @Transactional(readOnly = true)
     public boolean canEditLocal(UUID localId, UUID userId) {
@@ -103,6 +105,18 @@ public class OwnershipService {
                 .map(e -> e.getPedido() != null
                         && e.getPedido().getLocalComidaId() != null
                         && canEditLocal(e.getPedido().getLocalComidaId(), userId))
+                .orElse(false);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean canViewPago(UUID pagoId, UUID userId) {
+        if (pagoId == null || userId == null) {
+            return false;
+        }
+        return pagoRepository.findById(pagoId)
+                .map(p -> p.getPedido() != null
+                        && p.getPedido().getUsuario() != null
+                        && userId.equals(p.getPedido().getUsuario().getId()))
                 .orElse(false);
     }
 

@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,19 +24,22 @@ public class PagoController {
     private final PagoService service;
 
     @GetMapping("/all")
-    @Operation(summary = "Listar todos los pagos")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Listar todos los pagos. Solo ADMIN.")
     public ResponseEntity<List<PagoResponse>> getAll() {
         return ResponseEntity.ok(service.getAll());
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener un pago por ID")
+    @PreAuthorize("hasRole('ADMIN') or @ownershipService.canViewPago(#id, principal.id)")
+    @Operation(summary = "Obtener un pago por ID. ADMIN o dueño del pedido asociado.")
     public ResponseEntity<PagoResponse> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(service.getById(id));
     }
 
     @PostMapping("/save")
-    @Operation(summary = "Registrar el pago de un pedido PENDIENTE")
+    @PreAuthorize("hasRole('ADMIN') or @ownershipService.canViewPedido(#request.pedidoId, principal.id)")
+    @Operation(summary = "Registrar el pago de un pedido PENDIENTE. ADMIN o dueño del pedido.")
     public ResponseEntity<PagoResponse> save(@Valid @RequestBody PagoRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.save(request));
     }
