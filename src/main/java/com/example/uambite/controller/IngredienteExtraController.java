@@ -36,23 +36,23 @@ public class IngredienteExtraController {
     }
 
     @PostMapping("/save")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Crear un nuevo ingrediente extra. Solo ADMIN (catálogo global).")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LOCAL')")
+    @Operation(summary = "Crear un nuevo ingrediente extra. ADMIN o LOCAL.")
     public ResponseEntity<IngredienteExtraResponse> save(@Valid @RequestBody IngredienteExtraRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.save(request));
     }
 
     @PutMapping("/update/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Actualizar un ingrediente extra. Solo ADMIN.")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LOCAL')")
+    @Operation(summary = "Actualizar un ingrediente extra. ADMIN o LOCAL.")
     public ResponseEntity<IngredienteExtraResponse> update(@PathVariable UUID id,
                                                           @Valid @RequestBody IngredienteExtraRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 
     @DeleteMapping("/delete/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Eliminar un ingrediente extra. Solo ADMIN.")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LOCAL')")
+    @Operation(summary = "Eliminar un ingrediente extra. ADMIN o LOCAL.")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         service.delete(id);
         return ResponseEntity.noContent().build();

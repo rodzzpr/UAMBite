@@ -230,6 +230,7 @@
       <button onclick="cargarLocalProductos()" id="tab-la-productos" class="px-3 py-1.5 rounded-lg bg-gray-200 text-gray-700 font-medium transition flex-shrink-0">Productos</button>
       <button onclick="cargarLocalFranjas()" id="tab-la-franjas" class="px-3 py-1.5 rounded-lg bg-gray-200 text-gray-700 font-medium transition flex-shrink-0">Franjas</button>
       <button onclick="cargarLocalDescuentos()" id="tab-la-descuentos" class="px-3 py-1.5 rounded-lg bg-gray-200 text-gray-700 font-medium transition flex-shrink-0">Descuentos</button>
+      <button onclick="cargarLocalIngredientes()" id="tab-la-ingredientes" class="px-3 py-1.5 rounded-lg bg-gray-200 text-gray-700 font-medium transition flex-shrink-0">Ingredientes</button>
     </div>
     <div id="local-admin-content" class="flex-1 overflow-y-auto px-4 py-3 space-y-3"></div>
   </div>
@@ -808,7 +809,7 @@ async function crearEntidad(tipo){
 function val(id){const el=document.getElementById(id);return el?el.value:'';}
 
 // ==================== LOCAL ADMIN (encargado) ====================
-function resetLATabs(){['pedidos','productos','franjas','descuentos'].forEach(t=>document.getElementById('tab-la-'+t).className='px-3 py-1.5 rounded-lg bg-gray-200 text-gray-700 font-medium transition flex-shrink-0 text-xs');}
+function resetLATabs(){['pedidos','productos','franjas','descuentos','ingredientes'].forEach(t=>document.getElementById('tab-la-'+t).className='px-3 py-1.5 rounded-lg bg-gray-200 text-gray-700 font-medium transition flex-shrink-0 text-xs');}
 function activarLATab(t){resetLATabs();document.getElementById('tab-la-'+t).className='px-3 py-1.5 rounded-lg bg-blue-600 text-white font-medium transition flex-shrink-0 text-xs';}
 
 async function getMisLocales(){
@@ -903,11 +904,21 @@ async function cargarLocalDescuentos(){activarLATab('descuentos');
   }catch(err){Swal.fire({icon:'error',title:'Error',text:err.message});}
 }
 
+async function cargarLocalIngredientes(){activarLATab('ingredientes');
+  try{
+    const c=document.getElementById('local-admin-content');
+    const ings=await apiCall('GET','/ingredienteextra/all',null,false);
+    c.innerHTML=`<button onclick="mostrarFormAdmin('ingrediente')" class="w-full bg-blue-600 text-white py-2 rounded-xl text-sm font-medium mb-3"><i class="fa-solid fa-plus mr-2"></i>Nuevo Ingrediente</button>`+
+      (ings.length===0?'<p class="text-gray-400 text-center py-6">Sin ingredientes</p>':
+      ings.map(i=>`<div class="bg-white border border-gray-200 rounded-xl p-3 flex justify-between items-center"><div><p class="font-medium text-gray-800">${i.nombre}</p><p class="text-xs text-blue-600">+$${Number(i.precioExtra).toFixed(2)}</p></div><div class="flex items-center gap-1"><button onclick="mostrarFormAdmin('ingrediente','${i.id}')" class="text-blue-500 hover:text-blue-700 px-1"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="eliminarEntidadLocal('ingredienteextra','${i.id}')" class="text-red-500 hover:text-red-700 px-1"><i class="fa-solid fa-trash"></i></button></div></div>`).join(''));
+  }catch(err){Swal.fire({icon:'error',title:'Error',text:err.message});}
+}
+
 async function eliminarEntidadLocal(tipo,id){
   const r=await Swal.fire({title:'Eliminar?',text:'Esta acción no se puede deshacer.',icon:'warning',showCancelButton:true,confirmButtonText:'Sí, eliminar'});
   if(!r.isConfirmed)return;
   try{await apiCall('DELETE',`/${tipo}/delete/${id}`);Swal.fire({icon:'success',title:'Eliminado',timer:1000,showConfirmButton:false});
-    const fn={producto:()=>cargarLocalProductos(),franja:cargarLocalFranjas,descuento:cargarLocalDescuentos}[tipo];if(fn)fn();}
+    const fn={producto:()=>cargarLocalProductos(),franja:cargarLocalFranjas,descuento:cargarLocalDescuentos,ingredienteextra:cargarLocalIngredientes}[tipo];if(fn)fn();}
   catch(err){Swal.fire({icon:'error',title:'Error',text:err.message});}
 }
 

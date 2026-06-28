@@ -187,7 +187,7 @@ class MatrizPermisosE2ETest {
     }
 
     @Test
-    @DisplayName("Solo ADMIN puede crear ingredientes extra (catálogo global)")
+    @DisplayName("ADMIN y LOCAL pueden crear ingredientes extra; ESTUDIANTE no")
     void soloAdminCreaIngredientes() throws Exception {
         mockMvc.perform(post("/ingredienteextra/save")
                         .with(authAs(admin.getId(), Rol.ADMIN))
@@ -205,8 +205,7 @@ class MatrizPermisosE2ETest {
                                 IngredienteExtraRequest.builder()
                                         .nombre("Tocino").precioExtra(new BigDecimal("3.00"))
                                         .build())))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.code").value("ACCESS_DENIED"));
+                .andExpect(status().isCreated());
 
         mockMvc.perform(post("/ingredienteextra/save")
                         .with(authAs(estudiante.getId(), Rol.ESTUDIANTE))
