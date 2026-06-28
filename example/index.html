@@ -282,10 +282,16 @@ async function apiCall(method,path,body=null,auth=true){
   const opts={method,headers:{'Content-Type':'application/json'}};
   if(auth&&state.token)opts.headers['Authorization']='Bearer '+state.token;
   if(body)opts.body=JSON.stringify(body);
-  const res=await fetch(API+path,opts);
+  // Auto-paginate: append size=1000 to list GETs and unwrap Page content
+  let url=API+path;
+  if(method==='GET'&&!url.includes('?')&&!path.includes('{')&&!path.includes('disponibles')){
+    url+='?size=1000';
+  }
+  const res=await fetch(url,opts);
   if(!res.ok){let msg=`Error ${res.status}`;try{const e=await res.json();msg=e.message||e.error||msg;}catch(_){}throw new Error(msg);}
   if(res.status===204)return null;
-  return res.json();
+  const data=await res.json();
+  return (data&&Array.isArray(data.content))?data.content:data;
 }
 
 // ==================== NAVEGACIÓN SPA ====================

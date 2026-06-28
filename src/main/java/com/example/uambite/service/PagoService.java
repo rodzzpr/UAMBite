@@ -8,6 +8,9 @@ import com.example.uambite.exceptions.ResourceNotFoundException;
 import com.example.uambite.model.*;
 import com.example.uambite.repository.PagoRepository;
 import com.example.uambite.repository.PedidoRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,8 +27,8 @@ public class PagoService {
     private final PedidoRepository pedidoRepository;
 
     @Transactional(readOnly = true)
-    public List<PagoResponse> getAll() {
-        return repository.findAll().stream().map(this::toResponse).toList();
+    public Page<PagoResponse> getAll(Pageable pageable) {
+        return repository.findAll(pageable).map(this::toResponse);
     }
 
     @Transactional

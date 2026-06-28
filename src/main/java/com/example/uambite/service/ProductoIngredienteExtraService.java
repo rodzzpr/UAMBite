@@ -10,6 +10,9 @@ import com.example.uambite.model.ProductoIngredienteExtra;
 import com.example.uambite.repository.IngredienteExtraRepository;
 import com.example.uambite.repository.ProductoIngredienteExtraRepository;
 import com.example.uambite.repository.ProductoRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,8 +28,8 @@ public class ProductoIngredienteExtraService {
     private final IngredienteExtraRepository ingredienteRepository;
 
     @Transactional(readOnly = true)
-    public List<ProductoIngredienteExtraResponse> getAll() {
-        return repository.findAll().stream().map(this::toResponse).toList();
+    public Page<ProductoIngredienteExtraResponse> getAll(Pageable pageable) {
+        return repository.findAll(pageable).map(this::toResponse);
     }
 
     @Transactional

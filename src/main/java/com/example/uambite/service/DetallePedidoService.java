@@ -8,6 +8,9 @@ import com.example.uambite.exceptions.ConflictException;
 import com.example.uambite.exceptions.ResourceNotFoundException;
 import com.example.uambite.model.*;
 import com.example.uambite.repository.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,8 +33,8 @@ public class DetallePedidoService {
     private final PedidoService pedidoService;
 
     @Transactional(readOnly = true)
-    public List<DetallePedidoResponse> getAll() {
-        return repository.findAll().stream().map(this::toResponse).toList();
+    public Page<DetallePedidoResponse> getAll(Pageable pageable) {
+        return repository.findAll(pageable).map(this::toResponse);
     }
 
     @Transactional

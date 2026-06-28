@@ -8,6 +8,8 @@ import com.example.uambite.model.Producto;
 import com.example.uambite.repository.LocalComidaRepository;
 import com.example.uambite.repository.ProductoRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,8 +25,35 @@ public class ProductoService {
     private final LocalComidaRepository localRepository;
 
     @Transactional(readOnly = true)
-    public List<ProductoResponse> getAll() {
-        return repository.findAll().stream().map(this::toResponse).toList();
+    public Page<ProductoResponse> getAll(UUID localComidaId, String nombre,
+                                         BigDecimal maxPrecio, Pageable pageable) {
+        boolean hasLocal = localComidaId != null;
+        boolean hasNombre = nombre != null && !nombre.isBlank();
+        boolean hasPrecio = maxPrecio != null;
+
+        Page<Producto> page;
+        if (hasLocal && hasNombre && hasPrecio) {
+            page = repository.findByLocalComidaIdAndNombreContainingIgnoreCaseAndPrecioLessThanEqual(
+                    localComidaId, nombre, maxPrecio, pageable);
+        } else if (hasLocal && hasNombre) {
+            page = repository.findByLocalComidaIdAndNombreContainingIgnoreCase(
+                    localComidaId, nombre, pageable);
+        } else if (hasLocal && hasPrecio) {
+            page = repository.findByLocalComidaIdAndPrecioLessThanEqual(
+                    localComidaId, maxPrecio, pageable);
+        } else if (hasNombre && hasPrecio) {
+            page = repository.findByNombreContainingIgnoreCaseAndPrecioLessThanEqual(
+                    nombre, maxPrecio, pageable);
+        } else if (hasLocal) {
+            page = repository.findByLocalComidaId(localComidaId, pageable);
+        } else if (hasNombre) {
+            page = repository.findByNombreContainingIgnoreCase(nombre, pageable);
+        } else if (hasPrecio) {
+            page = repository.findByPrecioLessThanEqual(maxPrecio, pageable);
+        } else {
+            page = repository.findAll(pageable);
+        }
+        return page.map(this::toResponse);
     }
 
     @Transactional(readOnly = true)

@@ -8,6 +8,9 @@ import com.example.uambite.model.FranjaHoraria;
 import com.example.uambite.model.LocalComida;
 import com.example.uambite.repository.FranjaHorariaRepository;
 import com.example.uambite.repository.LocalComidaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,13 +26,13 @@ public class FranjaHorariaService {
     private final LocalComidaRepository localRepository;
 
     @Transactional(readOnly = true)
-    public List<FranjaHorariaResponse> getAll() {
-        return repository.findAll().stream().map(this::toResponse).toList();
+    public Page<FranjaHorariaResponse> getAll(Pageable pageable) {
+        return repository.findAll(pageable).map(this::toResponse);
     }
 
     @Transactional(readOnly = true)
-    public List<FranjaHorariaResponse> getDisponibles() {
-        return repository.findByDisponibleTrue().stream().map(this::toResponse).toList();
+    public Page<FranjaHorariaResponse> getDisponibles(Pageable pageable) {
+        return repository.findByDisponibleTrue(pageable).map(this::toResponse);
     }
 
     @Transactional(readOnly = true)

@@ -10,11 +10,19 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import org.springframework.http.HttpStatus;
+
 import org.springframework.http.ResponseEntity;
+
 import org.springframework.security.access.prepost.PreAuthorize;
+
 import org.springframework.security.core.Authentication;
+
 import org.springframework.security.core.context.SecurityContextHolder;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,12 +39,12 @@ public class EntregaController {
     @GetMapping("/all")
     @PreAuthorize("hasAnyRole('ADMIN', 'LOCAL')")
     @Operation(summary = "Listar entregas. ADMIN ve todas; LOCAL ve las de pedidos de sus locales.")
-    public ResponseEntity<List<EntregaResponse>> getAll() {
+    public ResponseEntity<Page<EntregaResponse>> getAll(Pageable pageable) {
         Usuario principal = usuarioAutenticado();
         if (principal.getRol() == Rol.LOCAL) {
-            return ResponseEntity.ok(service.getAllForLocalOwner(principal.getId()));
+            return ResponseEntity.ok(service.getAllForLocalOwner(principal.getId(), pageable));
         }
-        return ResponseEntity.ok(service.getAll());
+        return ResponseEntity.ok(service.getAll(pageable));
     }
 
     @PostMapping("/save")

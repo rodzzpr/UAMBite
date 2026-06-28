@@ -11,11 +11,19 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import org.springframework.http.HttpStatus;
+
 import org.springframework.http.ResponseEntity;
+
 import org.springframework.security.access.prepost.PreAuthorize;
+
 import org.springframework.security.core.Authentication;
+
 import org.springframework.security.core.context.SecurityContextHolder;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,12 +40,12 @@ public class PedidoController {
     @GetMapping("/all")
     @PreAuthorize("hasAnyRole('ADMIN', 'LOCAL')")
     @Operation(summary = "Listar pedidos. ADMIN ve todos; LOCAL ve los de sus locales (ordenados por prioridad).")
-    public ResponseEntity<List<PedidoResponse>> getAll() {
+    public ResponseEntity<Page<PedidoResponse>> getAll(Pageable pageable) {
         Usuario principal = usuarioAutenticado();
         if (principal.getRol() == Rol.LOCAL) {
-            return ResponseEntity.ok(service.getAllForLocalOwner(principal.getId()));
+            return ResponseEntity.ok(service.getAllForLocalOwner(principal.getId(), pageable));
         }
-        return ResponseEntity.ok(service.getAll());
+        return ResponseEntity.ok(service.getAll(pageable));
     }
 
     @GetMapping("/{id}")
@@ -128,8 +136,8 @@ public class PedidoController {
     @GetMapping("/mios")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Listar los pedidos del usuario autenticado")
-    public ResponseEntity<List<PedidoResponse>> getMios() {
-        return ResponseEntity.ok(service.getMios(usuarioAutenticado().getId()));
+    public ResponseEntity<Page<PedidoResponse>> getMios(Pageable pageable) {
+        return ResponseEntity.ok(service.getMios(usuarioAutenticado().getId(), pageable));
     }
 
     private Usuario usuarioAutenticado() {

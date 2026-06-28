@@ -5,6 +5,9 @@ import com.example.uambite.dto.response.IngredienteExtraResponse;
 import com.example.uambite.exceptions.ResourceNotFoundException;
 import com.example.uambite.model.IngredienteExtra;
 import com.example.uambite.repository.IngredienteExtraRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,8 +23,8 @@ public class IngredienteExtraService {
     private final IngredienteExtraRepository repository;
 
     @Transactional(readOnly = true)
-    public List<IngredienteExtraResponse> getAll() {
-        return repository.findAll().stream().map(this::toResponse).toList();
+    public Page<IngredienteExtraResponse> getAll(Pageable pageable) {
+        return repository.findAll(pageable).map(this::toResponse);
     }
 
     @Transactional(readOnly = true)

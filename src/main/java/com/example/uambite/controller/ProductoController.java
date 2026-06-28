@@ -7,9 +7,19 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import java.math.BigDecimal;
+
 import org.springframework.http.HttpStatus;
+import java.math.BigDecimal;
+
 import org.springframework.http.ResponseEntity;
+import java.math.BigDecimal;
+
 import org.springframework.security.access.prepost.PreAuthorize;
+import java.math.BigDecimal;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,8 +35,8 @@ public class ProductoController {
 
     @GetMapping("/all")
     @Operation(summary = "Listar todos los productos")
-    public ResponseEntity<List<ProductoResponse>> getAll() {
-        return ResponseEntity.ok(service.getAll());
+    public ResponseEntity<Page<ProductoResponse>> getAll(Pageable pageable, @RequestParam(required=false) UUID localComidaId, @RequestParam(required=false) String nombre, @RequestParam(required=false) BigDecimal maxPrecio) {
+        return ResponseEntity.ok(service.getAll(localComidaId, nombre, maxPrecio, pageable));
     }
 
     @GetMapping("/{id}")

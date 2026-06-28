@@ -14,6 +14,9 @@ import com.example.uambite.model.*;
 import com.example.uambite.repository.*;
 import com.example.uambite.repository.ProductoRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,19 +57,18 @@ public class PedidoService {
     private final LocalComidaRepository localComidaRepository;
 
     @Transactional(readOnly = true)
-    public List<PedidoResponse> getAll() {
-        return repository.findAll().stream().map(this::toResponse).toList();
+    public Page<PedidoResponse> getAll(Pageable pageable) {
+        return repository.findAll(pageable).map(this::toResponse);
     }
 
     @Transactional(readOnly = true)
-    public List<PedidoResponse> getAllForLocalOwner(UUID duenoId) {
+    public Page<PedidoResponse> getAllForLocalOwner(UUID duenoId, Pageable pageable) {
         List<UUID> localIds = localComidaRepository.findByDuenoId(duenoId).stream()
                 .map(LocalComida::getId).toList();
         if (localIds.isEmpty()) {
-            return List.of();
+            return Page.empty(pageable);
         }
-        return repository.findByLocalComidaIdInOrderByPrioridadDescCreatedAtAsc(localIds).stream()
-                .map(this::toResponse).toList();
+        return repository.findByLocalComidaIdIn(localIds, pageable).map(this::toResponse);
     }
 
     @Transactional(readOnly = true)
@@ -183,9 +185,8 @@ public class PedidoService {
     }
 
     @Transactional(readOnly = true)
-    public List<PedidoResponse> getMios(UUID usuarioId) {
-        return repository.findByUsuarioId(usuarioId).stream()
-                .map(this::toResponse).toList();
+    public Page<PedidoResponse> getMios(UUID usuarioId, Pageable pageable) {
+        return repository.findByUsuarioId(usuarioId, pageable).map(this::toResponse);
     }
 
     @Transactional

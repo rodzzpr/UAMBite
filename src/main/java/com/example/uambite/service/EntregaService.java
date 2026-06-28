@@ -10,6 +10,9 @@ import com.example.uambite.model.*;
 import com.example.uambite.repository.EntregaRepository;
 import com.example.uambite.repository.LocalComidaRepository;
 import com.example.uambite.repository.PedidoRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,24 +30,22 @@ public class EntregaService {
     private final LocalComidaRepository localComidaRepository;
 
     @Transactional(readOnly = true)
-    public List<EntregaResponse> getAll() {
-        return repository.findAll().stream().map(this::toResponse).toList();
+    public Page<EntregaResponse> getAll(Pageable pageable) {
+        return repository.findAll(pageable).map(this::toResponse);
+    }
+
+    private Page<EntregaResponse> findAllByLocalComidaIds(java.util.Collection<UUID> localComidaIds, Pageable pageable) {
+        return repository.findByPedido_LocalComidaIdIn(localComidaIds, pageable).map(this::toResponse);
     }
 
     @Transactional(readOnly = true)
-    public List<EntregaResponse> findAllByLocalComidaIds(java.util.Collection<UUID> localComidaIds) {
-        return repository.findByPedido_LocalComidaIdIn(localComidaIds).stream()
-                .map(this::toResponse).toList();
-    }
-
-    @Transactional(readOnly = true)
-    public List<EntregaResponse> getAllForLocalOwner(UUID duenoId) {
+    public Page<EntregaResponse> getAllForLocalOwner(UUID duenoId, Pageable pageable) {
         List<UUID> localIds = localComidaRepository.findByDuenoId(duenoId).stream()
                 .map(LocalComida::getId).toList();
         if (localIds.isEmpty()) {
-            return List.of();
+            return Page.empty(pageable);
         }
-        return findAllByLocalComidaIds(localIds);
+        return findAllByLocalComidaIds(localIds, pageable);
     }
 
     @Transactional
