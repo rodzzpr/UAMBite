@@ -189,8 +189,9 @@
 
   <!-- ==================== ORDERS ==================== -->
   <div id="vista-orders" class="flex-1 flex flex-col hidden">
-    <div class="p-4 pb-2 border-b border-gray-100">
+    <div class="p-4 pb-2 border-b border-gray-100 flex justify-between items-center">
       <h2 class="text-xl font-bold text-gray-800"><i class="fa-solid fa-clipboard-list mr-2 text-blue-600"></i>Mis Pedidos</h2>
+      <button onclick="limpiarHistorial()" class="text-gray-400 text-xs hover:text-red-500 transition"><i class="fa-solid fa-broom mr-1"></i>Limpiar</button>
     </div>
     <div id="orders-container" class="flex-1 overflow-y-auto px-4 py-3 space-y-3"></div>
   </div>
@@ -536,7 +537,8 @@ async function cargarPedidos(){
         ${p.descuentoAplicado>0?`<p class="text-xs text-green-600 mt-1">Descuento: -$${Number(p.descuentoAplicado).toFixed(2)}</p>`:''}
         ${pagoInfo}${entregaInfo}${dt?`<ul class="mt-2 space-y-1">${dt}</ul>`:''}
         ${p.estado==='PENDIENTE'?`<button onclick="cancelarPedido('${p.id}')" class="mt-2 text-red-600 text-sm font-medium hover:underline"><i class="fa-solid fa-ban mr-1"></i>Cancelar</button>`:''}
-        ${p.estado==='LISTO'&&p.tipoEntrega==='RETIRO_LOCAL'?`<button onclick="confirmarRetiro('${p.id}')" class="mt-2 w-full bg-green-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition"><i class="fa-solid fa-box-open mr-2"></i>Confirmar Retiro</button>`:''}</div>`;
+        ${p.estado==='LISTO'&&p.tipoEntrega==='RETIRO_LOCAL'?`<button onclick="confirmarRetiro('${p.id}')" class="mt-2 w-full bg-green-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition"><i class="fa-solid fa-box-open mr-2"></i>Confirmar Retiro</button>`:''}
+        ${['PENDIENTE','CANCELADO','ENTREGADO'].includes(p.estado)?`<button onclick="eliminarPedido('${p.id}')" class="mt-1 text-gray-400 text-xs hover:text-red-500"><i class="fa-solid fa-xmark mr-1"></i>Eliminar</button>`:''}</div>`;
     }).join('');
   }catch(err){Swal.fire({icon:'error',title:'Error',text:err.message});}
 }
@@ -553,6 +555,25 @@ async function confirmarRetiro(id){
   if(!r.isConfirmed)return;
   try{await apiCall('PUT',`/pedido/${id}/estado`,{estado:'ENTREGADO'});Swal.fire({icon:'success',title:'Pedido entregado!',timer:1500,showConfirmButton:false});cargarPedidos();}
   catch(err){Swal.fire({icon:'error',title:'Error',text:err.message});}
+}
+
+async function eliminarPedido(id){
+  const r=await Swal.fire({title:'Eliminar pedido?',text:'Esta acción no se puede deshacer.',icon:'warning',showCancelButton:true,confirmButtonText:'Sí, eliminar',confirmButtonColor:'#ef4444'});
+  if(!r.isConfirmed)return;
+  try{await apiCall('DELETE',`/pedido/delete/${id}`);Swal.fire({icon:'success',title:'Pedido eliminado',timer:1000,showConfirmButton:false});cargarPedidos();}
+  catch(err){Swal.fire({icon:'error',title:'Error',text:err.message});}
+}
+
+async function limpiarHistorial(){
+  try{
+    const pedidos=await apiCall('GET','/pedido/mios');
+    const borrables=pedidos.filter(p=>['CANCELADO','ENTREGADO'].includes(p.estado));
+    if(borrables.length===0){Swal.fire({icon:'info',title:'Nada que limpiar',text:'No hay pedidos cancelados o entregados.'});return;}
+    const r=await Swal.fire({title:`Limpiar historial?`,text:`Se eliminarán ${borrables.length} pedido(s) cancelados/entregados.`,icon:'question',showCancelButton:true,confirmButtonText:'Sí, limpiar',confirmButtonColor:'#ef4444'});
+    if(!r.isConfirmed)return;
+    for(const p of borrables){await apiCall('DELETE',`/pedido/delete/${p.id}`).catch(()=>{});}
+    Swal.fire({icon:'success',title:'Historial limpio!',timer:1500,showConfirmButton:false});cargarPedidos();
+  }catch(err){Swal.fire({icon:'error',title:'Error',text:err.message});}
 }
 
 // ==================== PERFIL ====================

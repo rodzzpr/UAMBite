@@ -126,9 +126,10 @@ public class PedidoService {
     public void delete(UUID id) {
         Pedido pedido = findOrThrow(id);
         if (pedido.getEstado() != EstadoPedido.PENDIENTE
-                && pedido.getEstado() != EstadoPedido.CANCELADO) {
+                && pedido.getEstado() != EstadoPedido.CANCELADO
+                && pedido.getEstado() != EstadoPedido.ENTREGADO) {
             throw new InvalidStateException(
-                    "Solo se pueden eliminar pedidos en estado PENDIENTE o CANCELADO.");
+                    "Solo se pueden eliminar pedidos en estado PENDIENTE, CANCELADO o ENTREGADO.");
         }
         if (pedido.getFranjaHoraria() != null) {
             liberarFranja(pedido.getFranjaHoraria());
