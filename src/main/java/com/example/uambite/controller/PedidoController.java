@@ -68,7 +68,7 @@ public class PedidoController {
 
     @PutMapping("/{id}/estado")
     @PreAuthorize("hasRole('ADMIN') or "
-            + "(#request.estado.name() == 'CANCELADO'"
+            + "(#request.estado.name() == 'CANCELADO' || #request.estado.name() == 'ENTREGADO'"
             + " ? @ownershipService.canViewPedido(#id, principal.id)"
             + " : @ownershipService.canManagePedido(#id, principal.id))")
     @Operation(summary = "Cambiar el estado de un pedido. CANCELADO: ADMIN, dueño o encargado. Otros: ADMIN o encargado del local.")

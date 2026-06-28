@@ -20,7 +20,7 @@ public final class EstadoPedidoTransiciones {
             PENDIENTE, EnumSet.of(CONFIRMADO, CANCELADO),
             CONFIRMADO, EnumSet.of(EN_PREPARACION, CANCELADO),
             EN_PREPARACION, EnumSet.of(LISTO, CANCELADO),
-            LISTO, EnumSet.of(EN_CAMINO),
+            LISTO, EnumSet.of(EN_CAMINO, ENTREGADO),
             EN_CAMINO, EnumSet.of(ENTREGADO),
             ENTREGADO, EnumSet.noneOf(EstadoPedido.class),
             CANCELADO, EnumSet.noneOf(EstadoPedido.class)

@@ -221,6 +221,7 @@ public class PedidoService {
                 break;
             case EN_PREPARACION:
             case LISTO:
+            case ENTREGADO:
                 break;
             default:
                 throw new BusinessException(
