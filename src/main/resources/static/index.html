@@ -395,17 +395,23 @@ document.getElementById('form-register').addEventListener('submit',async(e)=>{
 
 // ==================== HOME ====================
 async function cargarHome(){
+  state.locales=[];state.productos=[];state.ingredientesExtra=[];state.prodIngExtras=[];
   try{
     const[locales,productos,ingExtras,pie]=await Promise.all([
-      apiCall('GET','/localcomida/all',null,false),apiCall('GET','/producto/all',null,false),
-      apiCall('GET','/ingredienteextra/all',null,false),apiCall('GET','/productoingredienteextra/all',null,false)
+      apiCall('GET','/localcomida/all',null,false).catch(()=>[]),
+      apiCall('GET','/producto/all',null,false).catch(()=>[]),
+      apiCall('GET','/ingredienteextra/all',null,false).catch(()=>[]),
+      apiCall('GET','/productoingredienteextra/all',null,false).catch(()=>[])
     ]);
     state.locales=locales;state.productos=productos;state.ingredientesExtra=ingExtras;state.prodIngExtras=pie;renderLocales();
-  }catch(err){Swal.fire({icon:'error',title:'Error al cargar',text:err.message});}
+  }catch(err){Swal.fire({icon:'error',title:'Error al cargar',text:err.message});renderLocales();}
 }
 
 function renderLocales(){
   const container=document.getElementById('locales-container');
+  if(!Array.isArray(state.locales)||state.locales.length===0){
+    container.innerHTML='<div class="text-center text-gray-400 py-10"><i class="fa-solid fa-shop-slash text-4xl mb-2"></i><p>No hay locales disponibles</p></div>';return;
+  }
   container.innerHTML=state.locales.map(l=>{
     const prods=state.productos.filter(p=>p.localComida===l.nombre);
     const countProds=prods.length;
@@ -620,7 +626,7 @@ async function cargarAdminPedidos(){activarTab('pedidos');
       if(p.estado==='CONFIRMADO')btns.push(`<button onclick="adminTransicion('${p.id}','EN_PREPARACION')" class="bg-purple-600 text-white px-2 py-1 rounded text-xs">Preparar</button>`);
       if(p.estado==='EN_PREPARACION')btns.push(`<button onclick="adminTransicion('${p.id}','LISTO')" class="bg-green-600 text-white px-2 py-1 rounded text-xs">Listo</button>`);
       if(['PENDIENTE','CONFIRMADO','EN_PREPARACION'].includes(p.estado))btns.push(`<button onclick="adminTransicion('${p.id}','CANCELADO')" class="bg-red-600 text-white px-2 py-1 rounded text-xs">Cancelar</button>`);
-      if(p.estado==='LISTO'&&p.pago&&p.pago.estado==='PAGADO')btns.push(`<button onclick="adminCrearEntrega('${p.id}')" class="bg-orange-600 text-white px-2 py-1 rounded text-xs">Crear Entrega</button>`);
+      if(p.estado==='LISTO'&&p.pago&&p.pago.estado==='PAGADO'&&p.tipoEntrega==='ENTREGA_INTERNA')btns.push(`<button onclick="adminCrearEntrega('${p.id}')" class="bg-orange-600 text-white px-2 py-1 rounded text-xs">Crear Entrega</button>`);
       if(p.estado==='EN_CAMINO'&&p.entrega)btns.push(`<button onclick="adminFinalizarEntrega('${p.entrega.id}')" class="bg-teal-600 text-white px-2 py-1 rounded text-xs">Finalizar Entrega</button>`);
       const prioHtml=`<div class="flex items-center gap-1 mt-1 text-xs"><span class="text-gray-500">Prioridad:</span><button onclick="adminSetPrioridad('${p.id}',${(p.prioridad||0)-1})" class="w-5 h-5 rounded bg-gray-200 text-gray-600 font-bold">−</button><span class="w-5 text-center font-semibold">${p.prioridad||0}</span><button onclick="adminSetPrioridad('${p.id}',${(p.prioridad||0)+1})" class="w-5 h-5 rounded bg-gray-200 text-gray-600 font-bold">+</button></div>`;
       const pagoInfo=p.pago?`<span class="text-xs ml-2 px-1.5 py-0.5 rounded-full ${p.pago.estado==='PAGADO'?'bg-green-100 text-green-700':'bg-red-100 text-red-700'}">${p.pago.metodoPago} ${p.pago.estado}</span>`:'';
@@ -861,7 +867,7 @@ async function cargarLocalPedidos(){activarLATab('pedidos');
       if(p.estado==='CONFIRMADO')btns.push(`<button onclick="localTransicion('${p.id}','EN_PREPARACION')" class="bg-purple-600 text-white px-2 py-1 rounded text-xs">Preparar</button>`);
       if(p.estado==='EN_PREPARACION')btns.push(`<button onclick="localTransicion('${p.id}','LISTO')" class="bg-green-600 text-white px-2 py-1 rounded text-xs">Listo</button>`);
       if(['PENDIENTE','CONFIRMADO','EN_PREPARACION'].includes(p.estado))btns.push(`<button onclick="localTransicion('${p.id}','CANCELADO')" class="bg-red-600 text-white px-2 py-1 rounded text-xs">Cancelar</button>`);
-      if(p.estado==='LISTO'&&p.pago&&p.pago.estado==='PAGADO')btns.push(`<button onclick="localCrearEntrega('${p.id}')" class="bg-orange-600 text-white px-2 py-1 rounded text-xs">Crear Entrega</button>`);
+      if(p.estado==='LISTO'&&p.pago&&p.pago.estado==='PAGADO'&&p.tipoEntrega==='ENTREGA_INTERNA')btns.push(`<button onclick="localCrearEntrega('${p.id}')" class="bg-orange-600 text-white px-2 py-1 rounded text-xs">Crear Entrega</button>`);
       if(p.estado==='EN_CAMINO'&&p.entrega)btns.push(`<button onclick="localFinalizarEntrega('${p.entrega.id}')" class="bg-teal-600 text-white px-2 py-1 rounded text-xs">Finalizar Entrega</button>`);
       const prioHtml=`<div class="flex items-center gap-1 mt-1 text-xs"><span class="text-gray-500">Prioridad:</span><button onclick="localSetPrioridad('${p.id}',${(p.prioridad||0)-1})" class="w-5 h-5 rounded bg-gray-200 font-bold">−</button><span class="w-5 text-center font-semibold">${p.prioridad||0}</span><button onclick="localSetPrioridad('${p.id}',${(p.prioridad||0)+1})" class="w-5 h-5 rounded bg-gray-200 font-bold">+</button></div>`;
       const pagoInfo=p.pago?`<span class="text-xs ml-2 px-1.5 py-0.5 rounded-full ${p.pago.estado==='PAGADO'?'bg-green-100 text-green-700':'bg-red-100 text-red-700'}">${p.pago.metodoPago} ${p.pago.estado}</span>`:'';
