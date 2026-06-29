@@ -17,4 +17,5 @@ public class LocalComidaResponse {
     private String ubicacion;
     private String horario;
     private UUID duenoId;
+    private Boolean tieneImagen;
 }

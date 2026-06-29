@@ -16,4 +16,5 @@ public class IngredienteExtraResponse {
     private UUID id;
     private String nombre;
     private BigDecimal precioExtra;
+    private Boolean tieneImagen;
 }

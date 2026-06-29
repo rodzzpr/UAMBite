@@ -32,6 +32,13 @@ public class LocalComida extends BaseEntity {
     @Column(name = "dueno_id")
     private UUID duenoId;
 
+    @Lob
+    @Column(name = "imagen")
+    private byte[] imagen;
+
+    @Column(name = "imagen_tipo", length = 50)
+    private String imagenTipo;
+
     @JsonManagedReference(value = "local-producto")
     @OneToMany(mappedBy = "localComida")
     private List<Producto> productos;

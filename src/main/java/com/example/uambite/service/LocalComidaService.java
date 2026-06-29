@@ -1,5 +1,6 @@
 package com.example.uambite.service;
 
+import com.example.uambite.dto.ImagenData;
 import com.example.uambite.dto.request.EncargadoCreateRequest;
 import com.example.uambite.dto.request.LocalComidaConEncargadoRequest;
 import com.example.uambite.dto.request.LocalComidaRequest;
@@ -14,6 +15,7 @@ import com.example.uambite.model.Rol;
 import com.example.uambite.model.Usuario;
 import com.example.uambite.repository.LocalComidaRepository;
 import com.example.uambite.repository.UsuarioRepository;
+import com.example.uambite.util.ImageValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,7 +23,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.UUID;
 
 @Service
@@ -113,6 +117,37 @@ public class LocalComidaService {
         repository.delete(local);
     }
 
+    @Transactional
+    public void setImagen(UUID id, MultipartFile file) {
+        ImageValidator.validar(file);
+        LocalComida local = findOrThrow(id);
+        try {
+            local.setImagen(file.getBytes());
+            local.setImagenTipo(file.getContentType());
+        } catch (IOException e) {
+            throw new BusinessException("No se pudo leer la imagen",
+                    HttpStatus.INTERNAL_SERVER_ERROR, "IMAGE_READ_FAILED");
+        }
+        repository.save(local);
+    }
+
+    @Transactional(readOnly = true)
+    public ImagenData getImagen(UUID id) {
+        LocalComida local = findOrThrow(id);
+        if (local.getImagen() == null || local.getImagen().length == 0) {
+            throw new ResourceNotFoundException("El local no tiene imagen");
+        }
+        return new ImagenData(local.getImagen(), local.getImagenTipo());
+    }
+
+    @Transactional
+    public void removeImagen(UUID id) {
+        LocalComida local = findOrThrow(id);
+        local.setImagen(null);
+        local.setImagenTipo(null);
+        repository.save(local);
+    }
+
     private LocalComida findOrThrow(UUID id) {
         return repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Local de comida no encontrado."));
@@ -125,6 +160,7 @@ public class LocalComidaService {
                 .ubicacion(local.getUbicacion())
                 .horario(local.getHorario())
                 .duenoId(local.getDuenoId())
+                .tieneImagen(local.getImagen() != null && local.getImagen().length > 0)
                 .build();
     }
 

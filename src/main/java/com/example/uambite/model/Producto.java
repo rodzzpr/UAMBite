@@ -36,6 +36,13 @@ public class Producto extends BaseEntity {
     @Column(nullable = false)
     private Boolean permitePersonalizacion;
 
+    @Lob
+    @Column(name = "imagen")
+    private byte[] imagen;
+
+    @Column(name = "imagen_tipo", length = 50)
+    private String imagenTipo;
+
     @Version
     private Long version;
 

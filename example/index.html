@@ -87,6 +87,9 @@
   <!-- ==================== MODAL PRODUCTO ==================== -->
   <div id="modal-producto" class="modal-overlay fixed inset-0 flex items-end sm:items-center justify-center hidden">
     <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 max-h-[85vh] overflow-y-auto shadow-2xl">
+      <div id="modal-imagen-wrap" class="hidden -mx-6 -mt-6 mb-4">
+        <img id="modal-imagen" class="w-full h-48 object-cover sm:rounded-t-3xl" onerror="this.parentElement.classList.add('hidden')">
+      </div>
       <div class="flex justify-between items-center mb-4">
         <h3 id="modal-nombre" class="text-lg font-bold text-gray-800"></h3>
         <button onclick="cerrarModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
@@ -365,6 +368,81 @@ async function apiCall(method,path,body=null,auth=true){
   return (data&&Array.isArray(data.content))?data.content:data;
 }
 
+async function apiUpload(path,file){
+  const fd=new FormData();
+  fd.append('file',file);
+  const opts={method:'POST',headers:{},body:fd};
+  if(state.token)opts.headers['Authorization']='Bearer '+state.token;
+  const res=await fetch(API+path,opts);
+  if(!res.ok){let msg=`Error ${res.status}`;try{const e=await res.json();msg=e.message||e.error||msg;}catch(_){}throw new Error(msg);}
+  if(res.status===204)return null;
+  return await res.json();
+}
+
+// URL pública de la imagen de un recurso (los GET son públicos).
+function imgUrl(tipo,id){
+  const base=tipo==='local'?'/localcomida':tipo==='producto'?'/producto':'/ingredienteextra';
+  return API+base+'/'+id+'/imagen';
+}
+
+// Recarga la vista actual del admin/local-admin tras subir/borrar imagen.
+function recargarVistaAdmin(tipo){
+  const enLA=!document.getElementById('vista-local-admin').classList.contains('hidden');
+  if(tipo==='local'){if(!enLA)cargarAdminLocales();}
+  else if(tipo==='producto'){enLA?cargarLocalProductos():cargarAdminProductos();}
+  else if(tipo==='ingrediente'){enLA?cargarLocalIngredientes():cargarAdminIngredientes();}
+}
+
+async function subirImagen(tipo,id,nombre){
+  const html=`<div class="text-left">
+    <p class="text-sm text-gray-500 mb-1">Subir imagen para: <b>${nombre}</b></p>
+    <p class="text-xs text-gray-400 mb-3">Formatos: JPG, PNG, WEBP. Máx 5MB.</p>
+    <input type="file" id="img-file" accept="image/jpeg,image/png,image/webp" class="w-full text-sm">
+    <div id="img-preview-wrap" class="mt-3 hidden"><img id="img-preview" class="w-full h-40 object-cover rounded-lg border"></div>
+  </div>`;
+  const r=await Swal.fire({
+    title:'Subir imagen',html,showCancelButton:true,confirmButtonText:'Subir',cancelButtonText:'Cancelar',
+    didOpen:()=>{
+      const input=document.getElementById('img-file');
+      const wrap=document.getElementById('img-preview-wrap');
+      const prev=document.getElementById('img-preview');
+      input.addEventListener('change',()=>{
+        if(input.files&&input.files[0]){
+          const reader=new FileReader();
+          reader.onload=e=>{prev.src=e.target.result;wrap.classList.remove('hidden');};
+          reader.readAsDataURL(input.files[0]);
+        }
+      });
+    },
+    preConfirm:()=>{
+      const input=document.getElementById('img-file');
+      if(!input.files||!input.files[0]){Swal.showValidationMessage('Selecciona un archivo');return false;}
+      const f=input.files[0];
+      if(f.size>5*1024*1024){Swal.showValidationMessage('La imagen supera 5MB');return false;}
+      if(!['image/jpeg','image/png','image/webp'].includes(f.type)){Swal.showValidationMessage('Tipo no permitido (jpg/png/webp)');return false;}
+      return f;
+    }
+  });
+  if(!r.isConfirmed||!r.value)return;
+  try{
+    const base=tipo==='local'?'/localcomida':tipo==='producto'?'/producto':'/ingredienteextra';
+    await apiUpload(base+'/'+id+'/imagen',r.value);
+    Swal.fire({icon:'success',title:'Imagen subida',timer:1000,showConfirmButton:false});
+    recargarVistaAdmin(tipo);
+  }catch(err){Swal.fire({icon:'error',title:'Error',text:err.message});}
+}
+
+async function eliminarImagen(tipo,id,nombre){
+  const r=await Swal.fire({title:'¿Eliminar imagen?',text:nombre,icon:'warning',showCancelButton:true,confirmButtonText:'Sí, eliminar',confirmButtonColor:'#ef4444'});
+  if(!r.isConfirmed)return;
+  try{
+    const base=tipo==='local'?'/localcomida':tipo==='producto'?'/producto':'/ingredienteextra';
+    await apiCall('DELETE',base+'/'+id+'/imagen');
+    Swal.fire({icon:'success',title:'Imagen eliminada',timer:1000,showConfirmButton:false});
+    recargarVistaAdmin(tipo);
+  }catch(err){Swal.fire({icon:'error',title:'Error',text:err.message});}
+}
+
 // ==================== NAVEGACIÓN SPA ====================
 function mostrarVista(vista){
   ['login','register','home','cart','orders','profile','local','local-admin','admin'].forEach(v=>document.getElementById('vista-'+v).classList.add('hidden'));
@@ -384,6 +462,10 @@ function abrirModalProducto(prod){
   state.modalProd=prod; state.modalCant=1; state.modalExtrasSel=[];
   document.getElementById('modal-nombre').textContent=prod.nombre;
   document.getElementById('modal-desc').textContent=prod.descripcion||'';
+  const imgWrap=document.getElementById('modal-imagen-wrap');
+  const imgEl=document.getElementById('modal-imagen');
+  if(prod.tieneImagen){imgEl.src=imgUrl('producto',prod.id);imgWrap.classList.remove('hidden');}
+  else{imgEl.src='';imgWrap.classList.add('hidden');}
   document.getElementById('modal-precio').textContent='$'+Number(prod.precio).toFixed(2);
   const sb=document.getElementById('modal-stock-badge');
   sb.textContent=stockText(prod.stock); sb.className='px-2 py-0.5 rounded-full text-xs font-semibold '+stockClass(prod.stock);
@@ -492,6 +574,7 @@ function renderLocales(){
       const badge=p.stock>10?'bg-green-100 text-green-700':p.stock>0?'bg-yellow-100 text-yellow-700':'bg-red-100 text-red-700';
       const badgeTxt=p.stock>10?'Disp.':p.stock>0?`${p.stock}`:'Agot.';
       return `<div class="flex-shrink-0 w-36 bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl p-2.5 shadow-sm">
+        ${p.tieneImagen?`<img src="${imgUrl('producto',p.id)}" class="w-full h-20 object-cover rounded-lg mb-1.5" onerror="this.style.display='none'">`:''}
         <p class="font-semibold text-xs text-gray-800 truncate" title="${p.nombre}">${p.nombre}${p.permitePersonalizacion?' <i class="fa-solid fa-pencil text-purple-500"></i>':''}</p>
         <p class="text-[10px] text-gray-500 truncate h-3">${p.descripcion||' '}</p>
         <div class="flex items-center justify-between mt-1.5">
@@ -503,7 +586,8 @@ function renderLocales(){
         </button>
       </div>`;
     }).join(''):'<p class="text-xs text-gray-400 italic py-2">Sin productos aún</p>';
-    return `<div class="bg-white border border-gray-200 rounded-2xl shadow-sm card-tap cursor-pointer" onclick="verLocal('${l.id}')">
+    return `<div class="bg-white border border-gray-200 rounded-2xl shadow-sm card-tap cursor-pointer overflow-hidden" onclick="verLocal('${l.id}')">
+      ${l.tieneImagen?`<img src="${imgUrl('local',l.id)}" class="w-full h-32 object-cover" onerror="this.style.display='none'">`:''}
       <div class="p-4 pb-3">
         <div class="flex items-start justify-between mb-1">
           <div class="flex-1">
@@ -541,8 +625,9 @@ function renderProductosDestacados(){
     const icon=p.permitePersonalizacion?'<i class="fa-solid fa-pencil text-purple-500 text-[9px] ml-0.5" title="Personalizable"></i>':'';
     const isFullWidth=idx%3===2;
     if(isFullWidth){
-      return `<div class="bg-gradient-to-br from-white to-blue-50/40 border border-blue-100 rounded-2xl p-3 flex items-center justify-between card-tap cursor-pointer shadow-sm hover:shadow-md transition-all col-span-2" onclick="verLocal('${p.localComidaId}')">
-        <div class="flex-1 min-w-0">
+      return `<div class="bg-gradient-to-br from-white to-blue-50/40 border border-blue-100 rounded-2xl overflow-hidden flex items-center justify-between card-tap cursor-pointer shadow-sm hover:shadow-md transition-all col-span-2" onclick="verLocal('${p.localComidaId}')">
+        ${p.tieneImagen?`<img src="${imgUrl('producto',p.id)}" class="w-24 h-24 object-cover flex-shrink-0" onerror="this.style.display='none'">`:''}
+        <div class="flex-1 min-w-0 p-3">
           <div class="flex items-center gap-2 mb-0.5">
             <p class="font-semibold text-sm text-gray-800">${p.nombre}${icon}</p>
             <span class="text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${sc}">${st}</span>
@@ -551,23 +636,26 @@ function renderProductosDestacados(){
           <p class="text-[11px] text-gray-500 mt-0.5 line-clamp-1">${p.descripcion||''}</p>
           <p class="text-blue-600 font-bold text-base mt-1">$${Number(p.precio).toFixed(2)}</p>
         </div>
-        <button onclick='event.stopPropagation();abrirModalProducto(${JSON.stringify(p).replace(/'/g,"&#39;")})' class="ml-3 bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-semibold hover:bg-blue-700 transition flex-shrink-0">
+        <button onclick='event.stopPropagation();abrirModalProducto(${JSON.stringify(p).replace(/'/g,"&#39;")})' class="ml-3 mr-3 bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-semibold hover:bg-blue-700 transition flex-shrink-0">
           <i class="fa-solid fa-cart-plus mr-1"></i>Agregar
         </button>
       </div>`;
     }
-    return `<div class="bg-gradient-to-br from-white to-blue-50/40 border border-blue-100 rounded-2xl p-3 flex flex-col card-tap cursor-pointer shadow-sm hover:shadow-md transition-all" onclick="verLocal('${p.localComidaId}')">
-      <div class="flex items-center justify-between mb-1.5">
-        <span class="text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${sc}">${st}</span>
+    return `<div class="bg-gradient-to-br from-white to-blue-50/40 border border-blue-100 rounded-2xl overflow-hidden flex flex-col card-tap cursor-pointer shadow-sm hover:shadow-md transition-all" onclick="verLocal('${p.localComidaId}')">
+      ${p.tieneImagen?`<img src="${imgUrl('producto',p.id)}" class="w-full h-24 object-cover" onerror="this.style.display='none'">`:''}
+      <div class="p-3 flex flex-col flex-1">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${sc}">${st}</span>
+        </div>
+        <p class="font-semibold text-xs text-gray-800 leading-tight line-clamp-2 flex-1 min-h-[2rem]">${p.nombre}${icon}</p>
+        <p class="text-[10px] text-gray-400 mt-1 truncate"><i class="fa-solid fa-store mr-0.5"></i>${p.localComida||''}</p>
+        <div class="flex items-center justify-between mt-2">
+          <span class="text-blue-600 font-bold text-base">$${Number(p.precio).toFixed(2)}</span>
+        </div>
+        <button onclick='event.stopPropagation();abrirModalProducto(${JSON.stringify(p).replace(/'/g,"&#39;")})' class="mt-2.5 w-full bg-blue-600 text-white py-2 rounded-xl text-[11px] font-semibold hover:bg-blue-700 transition flex items-center justify-center gap-1">
+          <i class="fa-solid fa-cart-plus"></i>Agregar
+        </button>
       </div>
-      <p class="font-semibold text-xs text-gray-800 leading-tight line-clamp-2 flex-1 min-h-[2rem]">${p.nombre}${icon}</p>
-      <p class="text-[10px] text-gray-400 mt-1 truncate"><i class="fa-solid fa-store mr-0.5"></i>${p.localComida||''}</p>
-      <div class="flex items-center justify-between mt-2">
-        <span class="text-blue-600 font-bold text-base">$${Number(p.precio).toFixed(2)}</span>
-      </div>
-      <button onclick='event.stopPropagation();abrirModalProducto(${JSON.stringify(p).replace(/'/g,"&#39;")})' class="mt-2.5 w-full bg-blue-600 text-white py-2 rounded-xl text-[11px] font-semibold hover:bg-blue-700 transition flex items-center justify-center gap-1">
-        <i class="fa-solid fa-cart-plus"></i>Agregar
-      </button>
     </div>`;
   }).join('');
 }
@@ -586,12 +674,13 @@ function verLocal(localId){
     const st=p.stock>10?`${p.stock} disp.`:p.stock>0?`Solo ${p.stock}`:'Agotado';
     const disabled=p.stock===0?'opacity-50 pointer-events-none':'';
     const icon=p.permitePersonalizacion?'<i class="fa-solid fa-pencil text-purple-500 text-xs ml-1" title="Personalizable"></i>':'';
-    return `<div class="bg-white border border-gray-100 rounded-xl p-3 flex items-center justify-between ${disabled}">
+    return `<div class="bg-white border border-gray-100 rounded-xl p-3 flex items-center gap-3 ${disabled}">
+      ${p.tieneImagen?`<img src="${imgUrl('producto',p.id)}" class="w-16 h-16 rounded-lg object-cover flex-shrink-0" onerror="this.style.display='none'">`:''}
       <div class="flex-1 min-w-0"><p class="font-medium text-sm text-gray-800">${p.nombre}${icon}</p>
-        <p class="text-xs text-gray-500">${p.descripcion||''}</p>
+        <p class="text-xs text-gray-500 line-clamp-1">${p.descripcion||''}</p>
         <div class="flex items-center gap-2 mt-1"><p class="text-blue-600 font-bold">$${Number(p.precio).toFixed(2)}</p>
         <span class="px-1.5 py-0.5 rounded-full text-xs font-semibold ${sc}">${st}</span></div></div>
-      <button onclick='abrirModalProducto(${JSON.stringify(p).replace(/'/g,"&#39;")})' class="ml-3 bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-blue-700 transition flex-shrink-0"><i class="fa-solid fa-plus mr-1"></i>Agregar</button></div>`;
+      <button onclick='abrirModalProducto(${JSON.stringify(p).replace(/'/g,"&#39;")})' class="ml-1 bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-blue-700 transition flex-shrink-0"><i class="fa-solid fa-plus mr-1"></i>Agregar</button></div>`;
   }).join('');}
   mostrarVista('local');
 }
@@ -801,7 +890,7 @@ async function cargarAdminUsuarios(){activarTab('usuarios');
 async function cargarAdminLocales(){activarTab('locales');
   try{const locales=await apiCall('GET','/localcomida/all',null,false);const c=document.getElementById('admin-content');
     c.innerHTML=`<button onclick="mostrarFormAdmin('local')" class="w-full bg-blue-600 text-white py-2 rounded-xl text-sm font-medium mb-3"><i class="fa-solid fa-plus mr-2"></i>Nuevo Local</button>`+
-      locales.map(l=>`<div class="bg-white border border-gray-200 rounded-xl p-3"><div class="flex justify-between items-center"><div><p class="font-medium text-gray-800">${l.nombre}</p><p class="text-xs text-gray-500">${l.ubicacion} · ${l.horario||''} · Dueño: ${l.duenoId?l.duenoId.substring(0,8):'—'}</p></div><div class="flex items-center gap-1"><button onclick="mostrarFormAdmin('local','${l.id}')" class="text-blue-500 hover:text-blue-700 px-1"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="asignarEncargado('${l.id}')" class="text-purple-500 hover:text-purple-700 px-1" title="Reasignar encargado"><i class="fa-solid fa-user-plus"></i></button><button onclick="eliminarEntidad('localcomida','${l.id}')" class="text-red-500 hover:text-red-700 px-1"><i class="fa-solid fa-trash"></i></button></div></div></div>`).join('');
+      locales.map(l=>`<div class="bg-white border border-gray-200 rounded-xl p-3"><div class="flex justify-between items-center"><div class="flex items-center gap-3 flex-1 min-w-0">${l.tieneImagen?`<img src="${imgUrl('local',l.id)}" class="w-12 h-12 rounded-lg object-cover flex-shrink-0" onerror="this.style.display='none'">`:`<div class="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-store text-gray-400"></i></div>`}<div class="min-w-0"><p class="font-medium text-gray-800 truncate">${l.nombre}</p><p class="text-xs text-gray-500 truncate">${l.ubicacion} · ${l.horario||''} · Dueño: ${l.duenoId?l.duenoId.substring(0,8):'—'}</p></div></div><div class="flex items-center gap-1"><button onclick="subirImagen('local','${l.id}','${l.nombre.replace(/'/g,"\\'")}')" class="${l.tieneImagen?'text-green-500 hover:text-green-700':'text-gray-400 hover:text-gray-600'} px-1" title="${l.tieneImagen?'Reemplazar imagen':'Subir imagen'}"><i class="fa-solid fa-camera"></i></button>${l.tieneImagen?`<button onclick="eliminarImagen('local','${l.id}','${l.nombre.replace(/'/g,"\\'")}')" class="text-orange-500 hover:text-orange-700 px-1" title="Eliminar imagen"><i class="fa-solid fa-image"></i></button>`:''}<button onclick="mostrarFormAdmin('local','${l.id}')" class="text-blue-500 hover:text-blue-700 px-1"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="asignarEncargado('${l.id}')" class="text-purple-500 hover:text-purple-700 px-1" title="Reasignar encargado"><i class="fa-solid fa-user-plus"></i></button><button onclick="eliminarEntidad('localcomida','${l.id}')" class="text-red-500 hover:text-red-700 px-1"><i class="fa-solid fa-trash"></i></button></div></div></div>`).join('');
   }catch(err){Swal.fire({icon:'error',title:'Error',text:err.message});}
 }
 
@@ -818,7 +907,7 @@ async function cargarAdminProductos(porLocalId=null){
         <span class="text-xs text-gray-400">${prodsLocal.length} producto${prodsLocal.length!==1?'s':''}</span></div>
         <button onclick="mostrarFormAdmin('producto',null,'${porLocalId}')" class="w-full bg-blue-600 text-white py-2 rounded-xl text-sm font-medium mb-3"><i class="fa-solid fa-plus mr-2"></i>Nuevo Producto en ${local.nombre}</button>`+
         (prodsLocal.length===0?'<p class="text-gray-400 text-center py-6">Sin productos en este local</p>':
-        prodsLocal.map(p=>`<div class="bg-white border border-gray-200 rounded-xl p-3 flex justify-between items-center"><div><p class="font-medium text-gray-800 text-sm">${p.nombre}</p><p class="text-xs text-gray-500">$${Number(p.precio).toFixed(2)} · Stock: ${p.stock} ${p.permitePersonalizacion?'· Personalizable':''}</p></div><div class="flex items-center gap-1"><button onclick="mostrarFormAdmin('producto','${p.id}')" class="text-blue-500 hover:text-blue-700 px-1"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="vincularIngrediente('${p.id}','${p.nombre.replace(/'/g,"\\'")}')" class="text-purple-500 hover:text-purple-700 px-1"><i class="fa-solid fa-link"></i></button><button onclick="eliminarEntidad('producto','${p.id}')" class="text-red-500 hover:text-red-700 px-1"><i class="fa-solid fa-trash"></i></button></div></div>`).join(''));
+        prodsLocal.map(p=>`<div class="bg-white border border-gray-200 rounded-xl p-3 flex justify-between items-center"><div class="flex items-center gap-3 flex-1 min-w-0">${p.tieneImagen?`<img src="${imgUrl('producto',p.id)}" class="w-10 h-10 rounded-lg object-cover flex-shrink-0" onerror="this.style.display='none'">`:`<div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-burger text-gray-400 text-sm"></i></div>`}<div class="min-w-0"><p class="font-medium text-gray-800 text-sm truncate">${p.nombre}</p><p class="text-xs text-gray-500 truncate">$${Number(p.precio).toFixed(2)} · Stock: ${p.stock} ${p.permitePersonalizacion?'· Personalizable':''}</p></div></div><div class="flex items-center gap-1"><button onclick="subirImagen('producto','${p.id}','${p.nombre.replace(/'/g,"\\'")}')" class="${p.tieneImagen?'text-green-500 hover:text-green-700':'text-gray-400 hover:text-gray-600'} px-1" title="${p.tieneImagen?'Reemplazar imagen':'Subir imagen'}"><i class="fa-solid fa-camera"></i></button>${p.tieneImagen?`<button onclick="eliminarImagen('producto','${p.id}','${p.nombre.replace(/'/g,"\\'")}')" class="text-orange-500 hover:text-orange-700 px-1" title="Eliminar imagen"><i class="fa-solid fa-image"></i></button>`:''}<button onclick="mostrarFormAdmin('producto','${p.id}')" class="text-blue-500 hover:text-blue-700 px-1"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="vincularIngrediente('${p.id}','${p.nombre.replace(/'/g,"\\'")}')" class="text-purple-500 hover:text-purple-700 px-1"><i class="fa-solid fa-link"></i></button><button onclick="eliminarEntidad('producto','${p.id}')" class="text-red-500 hover:text-red-700 px-1"><i class="fa-solid fa-trash"></i></button></div></div>`).join(''));
     }else{
       const locales=state.locales.length>0?state.locales:await apiCall('GET','/localcomida/all',null,false);
       const prods=state.productos.length>0?state.productos:await apiCall('GET','/producto/all',null,false);
@@ -851,7 +940,7 @@ async function cargarAdminDescuentos(){activarTab('descuentos');
 async function cargarAdminIngredientes(){activarTab('ingredientes');
   try{const ings=await apiCall('GET','/ingredienteextra/all',null,false);const c=document.getElementById('admin-content');
     c.innerHTML=`<button onclick="mostrarFormAdmin('ingrediente')" class="w-full bg-blue-600 text-white py-2 rounded-xl text-sm font-medium mb-3"><i class="fa-solid fa-plus mr-2"></i>Nuevo Ingrediente</button>`+
-      ings.map(i=>`<div class="bg-white border border-gray-200 rounded-xl p-3 flex justify-between items-center"><div><p class="font-medium text-gray-800">${i.nombre}</p><p class="text-xs text-blue-600">+$${Number(i.precioExtra).toFixed(2)}</p></div><div class="flex items-center gap-1"><button onclick="mostrarFormAdmin('ingrediente','${i.id}')" class="text-blue-500 hover:text-blue-700 px-1"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="eliminarEntidad('ingredienteextra','${i.id}')" class="text-red-500 hover:text-red-700 px-1"><i class="fa-solid fa-trash"></i></button></div></div>`).join('');
+      ings.map(i=>`<div class="bg-white border border-gray-200 rounded-xl p-3 flex justify-between items-center"><div class="flex items-center gap-3 flex-1 min-w-0">${i.tieneImagen?`<img src="${imgUrl('ingrediente',i.id)}" class="w-10 h-10 rounded-lg object-cover flex-shrink-0" onerror="this.style.display='none'">`:`<div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-pepper-hot text-gray-400 text-sm"></i></div>`}<div class="min-w-0"><p class="font-medium text-gray-800 truncate">${i.nombre}</p><p class="text-xs text-blue-600">+$${Number(i.precioExtra).toFixed(2)}</p></div></div><div class="flex items-center gap-1"><button onclick="subirImagen('ingrediente','${i.id}','${i.nombre.replace(/'/g,"\\'")}')" class="${i.tieneImagen?'text-green-500 hover:text-green-700':'text-gray-400 hover:text-gray-600'} px-1" title="${i.tieneImagen?'Reemplazar imagen':'Subir imagen'}"><i class="fa-solid fa-camera"></i></button>${i.tieneImagen?`<button onclick="eliminarImagen('ingrediente','${i.id}','${i.nombre.replace(/'/g,"\\'")}')" class="text-orange-500 hover:text-orange-700 px-1" title="Eliminar imagen"><i class="fa-solid fa-image"></i></button>`:''}<button onclick="mostrarFormAdmin('ingrediente','${i.id}')" class="text-blue-500 hover:text-blue-700 px-1"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="eliminarEntidad('ingredienteextra','${i.id}')" class="text-red-500 hover:text-red-700 px-1"><i class="fa-solid fa-trash"></i></button></div></div>`).join('');
   }catch(err){Swal.fire({icon:'error',title:'Error',text:err.message});}
 }
 
@@ -1040,7 +1129,7 @@ async function cargarLocalProductos(){activarLATab('productos');
       const prodsLocal=prods.filter(p=>p.localComida===local.nombre);
       c.innerHTML+=`<div class="mb-4"><div class="flex justify-between items-center mb-2"><h3 class="font-bold text-gray-800"><i class="fa-solid fa-store text-blue-500 mr-2"></i>${local.nombre}</h3><button onclick="mostrarFormAdmin('producto',null,'${local.id}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg text-xs font-medium"><i class="fa-solid fa-plus mr-1"></i>Nuevo</button></div>`+
         (prodsLocal.length===0?'<p class="text-gray-400 text-xs italic pl-2">Sin productos</p>':
-        prodsLocal.map(p=>`<div class="bg-white border border-gray-200 rounded-xl p-3 mb-2 flex justify-between items-center"><div><p class="font-medium text-sm">${p.nombre}</p><p class="text-xs text-gray-500">$${Number(p.precio).toFixed(2)} · Stock: ${p.stock} ${p.permitePersonalizacion?'· Personalizable':''}</p></div><div class="flex items-center gap-1"><button onclick="mostrarFormAdmin('producto','${p.id}')" class="text-blue-500 hover:text-blue-700 px-1"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="vincularIngrediente('${p.id}','${p.nombre.replace(/'/g,"\\'")}')" class="text-purple-500 hover:text-purple-700 px-1"><i class="fa-solid fa-link"></i></button><button onclick="eliminarEntidadLocal('producto','${p.id}')" class="text-red-500 hover:text-red-700 px-1"><i class="fa-solid fa-trash"></i></button></div></div>`).join(''))+'</div>';
+        prodsLocal.map(p=>`<div class="bg-white border border-gray-200 rounded-xl p-3 mb-2 flex justify-between items-center"><div class="flex items-center gap-3 flex-1 min-w-0">${p.tieneImagen?`<img src="${imgUrl('producto',p.id)}" class="w-10 h-10 rounded-lg object-cover flex-shrink-0" onerror="this.style.display='none'">`:`<div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-burger text-gray-400 text-sm"></i></div>`}<div class="min-w-0"><p class="font-medium text-sm truncate">${p.nombre}</p><p class="text-xs text-gray-500 truncate">$${Number(p.precio).toFixed(2)} · Stock: ${p.stock} ${p.permitePersonalizacion?'· Personalizable':''}</p></div></div><div class="flex items-center gap-1"><button onclick="subirImagen('producto','${p.id}','${p.nombre.replace(/'/g,"\\'")}')" class="${p.tieneImagen?'text-green-500 hover:text-green-700':'text-gray-400 hover:text-gray-600'} px-1" title="${p.tieneImagen?'Reemplazar imagen':'Subir imagen'}"><i class="fa-solid fa-camera"></i></button>${p.tieneImagen?`<button onclick="eliminarImagen('producto','${p.id}','${p.nombre.replace(/'/g,"\\'")}')" class="text-orange-500 hover:text-orange-700 px-1" title="Eliminar imagen"><i class="fa-solid fa-image"></i></button>`:''}<button onclick="mostrarFormAdmin('producto','${p.id}')" class="text-blue-500 hover:text-blue-700 px-1"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="vincularIngrediente('${p.id}','${p.nombre.replace(/'/g,"\\'")}')" class="text-purple-500 hover:text-purple-700 px-1"><i class="fa-solid fa-link"></i></button><button onclick="eliminarEntidadLocal('producto','${p.id}')" class="text-red-500 hover:text-red-700 px-1"><i class="fa-solid fa-trash"></i></button></div></div>`).join(''))+'</div>';
     }
   }catch(err){Swal.fire({icon:'error',title:'Error',text:err.message});}
 }
@@ -1079,7 +1168,7 @@ async function cargarLocalIngredientes(){activarLATab('ingredientes');
     const ings=await apiCall('GET','/ingredienteextra/all',null,false);
     c.innerHTML=`<button onclick="mostrarFormAdmin('ingrediente')" class="w-full bg-blue-600 text-white py-2 rounded-xl text-sm font-medium mb-3"><i class="fa-solid fa-plus mr-2"></i>Nuevo Ingrediente</button>`+
       (ings.length===0?'<p class="text-gray-400 text-center py-6">Sin ingredientes</p>':
-      ings.map(i=>`<div class="bg-white border border-gray-200 rounded-xl p-3 flex justify-between items-center"><div><p class="font-medium text-gray-800">${i.nombre}</p><p class="text-xs text-blue-600">+$${Number(i.precioExtra).toFixed(2)}</p></div><div class="flex items-center gap-1"><button onclick="mostrarFormAdmin('ingrediente','${i.id}')" class="text-blue-500 hover:text-blue-700 px-1"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="eliminarEntidadLocal('ingredienteextra','${i.id}')" class="text-red-500 hover:text-red-700 px-1"><i class="fa-solid fa-trash"></i></button></div></div>`).join(''));
+      ings.map(i=>`<div class="bg-white border border-gray-200 rounded-xl p-3 flex justify-between items-center"><div class="flex items-center gap-3 flex-1 min-w-0">${i.tieneImagen?`<img src="${imgUrl('ingrediente',i.id)}" class="w-10 h-10 rounded-lg object-cover flex-shrink-0" onerror="this.style.display='none'">`:`<div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-pepper-hot text-gray-400 text-sm"></i></div>`}<div class="min-w-0"><p class="font-medium text-gray-800 truncate">${i.nombre}</p><p class="text-xs text-blue-600">+$${Number(i.precioExtra).toFixed(2)}</p></div></div><div class="flex items-center gap-1"><button onclick="subirImagen('ingrediente','${i.id}','${i.nombre.replace(/'/g,"\\'")}')" class="${i.tieneImagen?'text-green-500 hover:text-green-700':'text-gray-400 hover:text-gray-600'} px-1" title="${i.tieneImagen?'Reemplazar imagen':'Subir imagen'}"><i class="fa-solid fa-camera"></i></button>${i.tieneImagen?`<button onclick="eliminarImagen('ingrediente','${i.id}','${i.nombre.replace(/'/g,"\\'")}')" class="text-orange-500 hover:text-orange-700 px-1" title="Eliminar imagen"><i class="fa-solid fa-image"></i></button>`:''}<button onclick="mostrarFormAdmin('ingrediente','${i.id}')" class="text-blue-500 hover:text-blue-700 px-1"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="eliminarEntidadLocal('ingredienteextra','${i.id}')" class="text-red-500 hover:text-red-700 px-1"><i class="fa-solid fa-trash"></i></button></div></div>`).join(''));
   }catch(err){Swal.fire({icon:'error',title:'Error',text:err.message});}
 }
 

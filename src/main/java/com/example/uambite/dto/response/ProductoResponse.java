@@ -22,4 +22,5 @@ public class ProductoResponse {
     private Boolean permitePersonalizacion;
     private String localComida;
     private List<UUID> ingredientesExtraIds;
+    private Boolean tieneImagen;
 }

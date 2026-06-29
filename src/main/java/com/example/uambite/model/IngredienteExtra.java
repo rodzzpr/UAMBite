@@ -26,6 +26,13 @@ public class IngredienteExtra extends BaseEntity {
     @Column(name = "precio_extra", nullable = false, precision = 12, scale = 2)
     private BigDecimal precioExtra;
 
+    @Lob
+    @Column(name = "imagen")
+    private byte[] imagen;
+
+    @Column(name = "imagen_tipo", length = 50)
+    private String imagenTipo;
+
     @JsonManagedReference(value = "ingrediente-producto")
     @OneToMany(mappedBy = "ingredienteExtra")
     private List<ProductoIngredienteExtra> productos;

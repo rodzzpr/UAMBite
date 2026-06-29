@@ -1,5 +1,7 @@
 package com.example.uambite.controller;
 
+import com.example.uambite.dto.ImagenData;
+import com.example.uambite.dto.ImagenResponse;
 import com.example.uambite.dto.request.ProductoRequest;
 import com.example.uambite.dto.response.ProductoResponse;
 import com.example.uambite.service.ProductoService;
@@ -9,20 +11,14 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import java.math.BigDecimal;
-
 import org.springframework.http.HttpStatus;
-import java.math.BigDecimal;
-
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import java.math.BigDecimal;
-
 import org.springframework.security.access.prepost.PreAuthorize;
-import java.math.BigDecimal;
-
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @RestController
@@ -65,6 +61,32 @@ public class ProductoController {
     @Operation(summary = "Eliminar un producto. ADMIN o encargado del local del producto.")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         service.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(value = "/{id}/imagen", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN') or @ownershipService.canEditProducto(#id, principal.id)")
+    @Operation(summary = "Subir o reemplazar la imagen del producto. ADMIN o dueño del local del producto.")
+    public ResponseEntity<ImagenResponse> uploadImagen(@PathVariable UUID id,
+                                                       @RequestParam("file") MultipartFile file) {
+        service.setImagen(id, file);
+        return ResponseEntity.ok(ImagenResponse.of("/producto/" + id + "/imagen"));
+    }
+
+    @GetMapping("/{id}/imagen")
+    @Operation(summary = "Obtener la imagen del producto (público)")
+    public ResponseEntity<byte[]> getImagen(@PathVariable UUID id) {
+        ImagenData data = service.getImagen(id);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(data.contentType()))
+                .body(data.datos());
+    }
+
+    @DeleteMapping("/{id}/imagen")
+    @PreAuthorize("hasRole('ADMIN') or @ownershipService.canEditProducto(#id, principal.id)")
+    @Operation(summary = "Eliminar la imagen del producto. ADMIN o dueño del local del producto.")
+    public ResponseEntity<Void> deleteImagen(@PathVariable UUID id) {
+        service.removeImagen(id);
         return ResponseEntity.noContent().build();
     }
 }
