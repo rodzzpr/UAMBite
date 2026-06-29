@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>UAMBite</title>
+<script>tailwind.config={darkMode:'class'};</script>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -20,6 +21,63 @@
   .badge-stock-out { background:#fee2e2; color:#991b1b; }
   .badge-stock-ok { background:#d1fae5; color:#065f46; }
   input[type=number]::-webkit-inner-spin-button { opacity:1; }
+  /* ===== DARK MODE ===== */
+  html.dark body { background: #111827; }
+  html.dark .phone-frame { background: #1f2937; box-shadow: 0 0 30px rgba(0,0,0,.5); }
+  html.dark .phone-frame .bg-white { background-color: #1f2937; }
+  html.dark .phone-frame .bg-gray-50 { background-color: #374151; }
+  html.dark .phone-frame .text-gray-800 { color: #f3f4f6; }
+  html.dark .phone-frame .text-gray-700 { color: #e5e7eb; }
+  html.dark .phone-frame .text-gray-600 { color: #d1d5db; }
+  html.dark .phone-frame .text-gray-500 { color: #9ca3af; }
+  html.dark .phone-frame .text-gray-400 { color: #7f8b9b; }
+  html.dark .phone-frame .text-gray-300 { color: #6b7280; }
+  html.dark .phone-frame .border-gray-100 { border-color: #374151; }
+  html.dark .phone-frame .border-gray-200 { border-color: #4b5563; }
+  html.dark .phone-frame .border-gray-300 { border-color: #6b7280; }
+  html.dark .phone-frame input,
+  html.dark .phone-frame select { background-color: #374151; color: #e5e7eb; border-color: #4b5563; }
+  html.dark .phone-frame input::placeholder { color: #6b7280; }
+  html.dark .phone-frame .hover\:bg-gray-100:hover { background-color: #374151; }
+  html.dark .phone-frame .hover\:bg-gray-200:hover { background-color: #4b5563; }
+  html.dark .nav-bottom { background: #1f2937; border-color: #374151; }
+  html.dark .nav-item { color: #9ca3af; }
+  html.dark .modal-overlay { background: rgba(0,0,0,.75); }
+  html.dark .badge-stock-ok { background: #065f46; color: #a7f3d0; }
+  html.dark .badge-stock-low { background: #78350f; color: #fde68a; }
+  html.dark .badge-stock-out { background: #7f1d1d; color: #fecaca; }
+  html.dark .phone-frame .bg-blue-50 { background-color: #1e3a5f; }
+  html.dark .phone-frame .bg-blue-100 { background-color: #1e3a5f; }
+  html.dark .phone-frame .bg-green-100 { background-color: #064e3b; }
+  html.dark .phone-frame .bg-yellow-100 { background-color: #78350f; }
+  html.dark .phone-frame .bg-red-100 { background-color: #7f1d1d; }
+  html.dark .phone-frame .bg-purple-100 { background-color: #4c1d95; }
+  html.dark .phone-frame .bg-orange-100 { background-color: #7c2d12; }
+  html.dark .phone-frame .bg-green-200 { background-color: #065f46; }
+  html.dark .phone-frame .bg-green-50 { background-color: #064e3b; }
+  html.dark .phone-frame .bg-red-50 { background-color: #7f1d1d; }
+  html.dark .phone-frame .text-blue-600 { color: #93c5fd; }
+  html.dark .phone-frame .text-blue-500 { color: #93c5fd; }
+  html.dark .phone-frame .text-blue-700 { color: #60a5fa; }
+  html.dark .phone-frame .text-green-600 { color: #86efac; }
+  html.dark .phone-frame .text-green-700 { color: #6ee7b7; }
+  html.dark .phone-frame .text-red-600 { color: #fca5a5; }
+  html.dark .phone-frame .text-red-700,
+  html.dark .phone-frame .text-red-800 { color: #fca5a5; }
+  html.dark .phone-frame .text-purple-600,
+  html.dark .phone-frame .text-purple-700,
+  html.dark .phone-frame .text-purple-800 { color: #c4b5fd; }
+  html.dark .phone-frame .text-yellow-700,
+  html.dark .phone-frame .text-yellow-800 { color: #fde68a; }
+  html.dark .phone-frame .text-orange-700,
+  html.dark .phone-frame .text-orange-800 { color: #fdba74; }
+  html.dark .phone-frame .text-green-900,
+  html.dark .phone-frame .text-green-800 { color: #6ee7b7; }
+  html.dark .phone-frame .text-blue-800 { color: #93c5fd; }
+  html.dark .phone-frame .border-blue-100 { border-color: #1e3a8a; }
+  html.dark .phone-frame .from-white { --tw-gradient-from: #1f2937 var(--tw-gradient-from-position); }
+  html.dark .phone-frame .from-gray-50 { --tw-gradient-from: #374151 var(--tw-gradient-from-position); }
+  html.dark .phone-frame .to-blue-50\/40 { --tw-gradient-to: rgba(30,64,175,.2) var(--tw-gradient-to-position); }
 </style>
 </head>
 <body class="flex justify-center">
@@ -122,9 +180,22 @@
   <div id="vista-home" class="flex-1 flex flex-col hidden">
     <div class="p-4 pb-2 flex justify-between items-center">
       <h2 class="text-xl font-bold text-gray-800"><i class="fa-solid fa-shop mr-2 text-blue-600"></i>Locales</h2>
-      <button onclick="cargarHome()" class="text-blue-600 text-sm"><i class="fa-solid fa-rotate mr-1"></i>Actualizar</button>
+      <div class="flex items-center gap-2">
+        <button onclick="cargarHome()" class="text-blue-600 text-sm"><i class="fa-solid fa-rotate mr-1"></i>Actualizar</button>
+        <button onclick="toggleDarkMode()" class="text-gray-400 hover:text-gray-600 text-lg leading-none" title="Modo oscuro / claro">
+          <i id="dark-icon" class="fa-solid fa-moon"></i>
+        </button>
+      </div>
     </div>
-    <div id="locales-container" class="flex-1 overflow-y-auto px-4 pb-4 space-y-3"></div>
+    <div class="flex-1 overflow-y-auto px-4 pb-4 space-y-3">
+      <div id="locales-container" class="space-y-3"></div>
+      <div id="productos-destacados" class="hidden">
+        <div class="flex items-center justify-between mt-4 mb-2">
+          <h3 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-fire text-orange-500 mr-2"></i>Productos Destacados</h3>
+        </div>
+        <div id="productos-destacados-grid" class="grid grid-cols-2 gap-2.5"></div>
+      </div>
+    </div>
   </div>
 
   <!-- ==================== LOCAL DETAIL ==================== -->
@@ -452,6 +523,51 @@ function renderLocales(){
       <div class="border-t border-gray-100 px-4 py-2 flex justify-end items-center text-xs text-gray-400">
         <span class="text-blue-600 font-medium">Ver local completo <i class="fa-solid fa-arrow-right ml-1"></i></span>
       </div>
+    </div>`;
+    }).join('');
+  renderProductosDestacados();
+}
+
+function renderProductosDestacados(){
+  const prodsConStock=state.productos.filter(p=>p.stock>0);
+  const section=document.getElementById('productos-destacados');
+  const grid=document.getElementById('productos-destacados-grid');
+  if(prodsConStock.length===0){section.classList.add('hidden');return;}
+  section.classList.remove('hidden');
+  const destinados=prodsConStock.slice(0,8);
+  grid.innerHTML=destinados.map((p,idx)=>{
+    const sc=p.stock>10?'badge-stock-ok':p.stock>0?'badge-stock-low':'badge-stock-out';
+    const st=p.stock>10?`${p.stock} disp.`:p.stock>0?`Solo ${p.stock}`:'Agotado';
+    const icon=p.permitePersonalizacion?'<i class="fa-solid fa-pencil text-purple-500 text-[9px] ml-0.5" title="Personalizable"></i>':'';
+    const isFullWidth=idx%3===2;
+    if(isFullWidth){
+      return `<div class="bg-gradient-to-br from-white to-blue-50/40 border border-blue-100 rounded-2xl p-3 flex items-center justify-between card-tap cursor-pointer shadow-sm hover:shadow-md transition-all col-span-2" onclick="verLocal('${p.localComidaId}')">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 mb-0.5">
+            <p class="font-semibold text-sm text-gray-800">${p.nombre}${icon}</p>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${sc}">${st}</span>
+          </div>
+          <p class="text-[10px] text-gray-400"><i class="fa-solid fa-store mr-0.5"></i>${p.localComida||''}</p>
+          <p class="text-[11px] text-gray-500 mt-0.5 line-clamp-1">${p.descripcion||''}</p>
+          <p class="text-blue-600 font-bold text-base mt-1">$${Number(p.precio).toFixed(2)}</p>
+        </div>
+        <button onclick='event.stopPropagation();abrirModalProducto(${JSON.stringify(p).replace(/'/g,"&#39;")})' class="ml-3 bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-semibold hover:bg-blue-700 transition flex-shrink-0">
+          <i class="fa-solid fa-cart-plus mr-1"></i>Agregar
+        </button>
+      </div>`;
+    }
+    return `<div class="bg-gradient-to-br from-white to-blue-50/40 border border-blue-100 rounded-2xl p-3 flex flex-col card-tap cursor-pointer shadow-sm hover:shadow-md transition-all" onclick="verLocal('${p.localComidaId}')">
+      <div class="flex items-center justify-between mb-1.5">
+        <span class="text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${sc}">${st}</span>
+      </div>
+      <p class="font-semibold text-xs text-gray-800 leading-tight line-clamp-2 flex-1 min-h-[2rem]">${p.nombre}${icon}</p>
+      <p class="text-[10px] text-gray-400 mt-1 truncate"><i class="fa-solid fa-store mr-0.5"></i>${p.localComida||''}</p>
+      <div class="flex items-center justify-between mt-2">
+        <span class="text-blue-600 font-bold text-base">$${Number(p.precio).toFixed(2)}</span>
+      </div>
+      <button onclick='event.stopPropagation();abrirModalProducto(${JSON.stringify(p).replace(/'/g,"&#39;")})' class="mt-2.5 w-full bg-blue-600 text-white py-2 rounded-xl text-[11px] font-semibold hover:bg-blue-700 transition flex items-center justify-center gap-1">
+        <i class="fa-solid fa-cart-plus"></i>Agregar
+      </button>
     </div>`;
   }).join('');
 }
@@ -975,8 +1091,22 @@ async function eliminarEntidadLocal(tipo,id){
   catch(err){Swal.fire({icon:'error',title:'Error',text:err.message});}
 }
 
+// ==================== DARK MODE ====================
+function toggleDarkMode(){
+  const html=document.documentElement;
+  const isDark=html.classList.toggle('dark');
+  localStorage.setItem('uambite_dark',isDark?'1':'0');
+  actualizarIconoDark(isDark);
+}
+function actualizarIconoDark(isDark){
+  const icon=document.getElementById('dark-icon');
+  if(isDark){icon.className='fa-solid fa-sun text-lg text-yellow-400';}
+  else{icon.className='fa-solid fa-moon text-lg';}
+}
+
 // ==================== INICIALIZACIÓN ====================
 (function init(){
+  if(localStorage.getItem('uambite_dark')==='1'){document.documentElement.classList.add('dark');actualizarIconoDark(true);}
   document.getElementById('modal-producto').addEventListener('click',function(e){if(e.target===this)cerrarModal();});
   if(cargarSesion()){state.cart=JSON.parse(localStorage.getItem('uambite_cart_'+state.user.id)||'[]');actualizarBadge();document.getElementById('nav-admin-btn').classList.toggle('hidden',state.user.rol!=='ADMIN');document.getElementById('nav-local-btn').classList.toggle('hidden',state.user.rol!=='LOCAL');mostrarVista('home');}
   else mostrarVista('login');
