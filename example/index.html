@@ -302,6 +302,7 @@
     </div>
     <div class="flex gap-1 px-3 py-2 border-b border-gray-100 overflow-x-auto text-xs">
       <button onclick="cargarLocalPedidos()" id="tab-la-pedidos" class="px-3 py-1.5 rounded-lg bg-blue-600 text-white font-medium transition flex-shrink-0">Pedidos</button>
+      <button onclick="cargarMiLocal()" id="tab-la-local" class="px-3 py-1.5 rounded-lg bg-gray-200 text-gray-700 font-medium transition flex-shrink-0">Local</button>
       <button onclick="cargarLocalProductos()" id="tab-la-productos" class="px-3 py-1.5 rounded-lg bg-gray-200 text-gray-700 font-medium transition flex-shrink-0">Productos</button>
       <button onclick="cargarLocalFranjas()" id="tab-la-franjas" class="px-3 py-1.5 rounded-lg bg-gray-200 text-gray-700 font-medium transition flex-shrink-0">Franjas</button>
       <button onclick="cargarLocalDescuentos()" id="tab-la-descuentos" class="px-3 py-1.5 rounded-lg bg-gray-200 text-gray-700 font-medium transition flex-shrink-0">Descuentos</button>
@@ -388,7 +389,7 @@ function imgUrl(tipo,id){
 // Recarga la vista actual del admin/local-admin tras subir/borrar imagen.
 function recargarVistaAdmin(tipo){
   const enLA=!document.getElementById('vista-local-admin').classList.contains('hidden');
-  if(tipo==='local'){if(!enLA)cargarAdminLocales();}
+  if(tipo==='local'){enLA?cargarMiLocal():cargarAdminLocales();}
   else if(tipo==='producto'){enLA?cargarLocalProductos():cargarAdminProductos();}
   else if(tipo==='ingrediente'){enLA?cargarLocalIngredientes():cargarAdminIngredientes();}
 }
@@ -1067,12 +1068,46 @@ async function crearEntidad(tipo){
 function val(id){const el=document.getElementById(id);return el?el.value:'';}
 
 // ==================== LOCAL ADMIN (encargado) ====================
-function resetLATabs(){['pedidos','productos','franjas','descuentos','ingredientes'].forEach(t=>document.getElementById('tab-la-'+t).className='px-3 py-1.5 rounded-lg bg-gray-200 text-gray-700 font-medium transition flex-shrink-0 text-xs');}
+function resetLATabs(){['pedidos','local','productos','franjas','descuentos','ingredientes'].forEach(t=>document.getElementById('tab-la-'+t).className='px-3 py-1.5 rounded-lg bg-gray-200 text-gray-700 font-medium transition flex-shrink-0 text-xs');}
 function activarLATab(t){resetLATabs();document.getElementById('tab-la-'+t).className='px-3 py-1.5 rounded-lg bg-blue-600 text-white font-medium transition flex-shrink-0 text-xs';}
 
 async function getMisLocales(){
   const locales=await apiCall('GET','/localcomida/all',null,false);
   return locales.filter(l=>l.duenoId===state.user.id);
+}
+
+async function cargarMiLocal(){activarLATab('local');
+  try{
+    const misLocales=await getMisLocales();
+    const c=document.getElementById('local-admin-content');
+    if(misLocales.length===0){c.innerHTML='<p class="text-gray-400 text-center py-10">No tienes locales asignados.</p>';return;}
+    c.innerHTML=misLocales.map(l=>{
+      const safeName=l.nombre.replace(/'/g,"\\'");
+      return `<div class="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
+        <div class="relative">
+          ${l.tieneImagen?`<img src="${imgUrl('local',l.id)}" class="w-full h-48 object-cover" onerror="this.style.display='none'">`:`<div class="w-full h-48 bg-gray-100 flex items-center justify-center"><i class="fa-solid fa-store text-5xl text-gray-300"></i></div>`}
+          <div class="absolute top-2 right-2 flex gap-1">
+            <button onclick="subirImagen('local','${l.id}','${safeName}')" class="bg-white/90 backdrop-blur text-gray-700 hover:bg-white px-3 py-1.5 rounded-lg text-xs font-medium shadow" title="${l.tieneImagen?'Cambiar imagen':'Subir imagen'}">
+              <i class="fa-solid fa-camera mr-1"></i>${l.tieneImagen?'Cambiar':'Subir'}
+            </button>
+            ${l.tieneImagen?`<button onclick="eliminarImagen('local','${l.id}','${safeName}')" class="bg-white/90 backdrop-blur text-orange-600 hover:bg-white px-2.5 py-1.5 rounded-lg text-xs font-medium shadow" title="Quitar imagen">
+              <i class="fa-solid fa-trash"></i>
+            </button>`:''}
+          </div>
+        </div>
+        <div class="p-4 flex justify-between items-start gap-3">
+          <div class="flex-1 min-w-0">
+            <h3 class="font-bold text-lg text-gray-800 truncate">${l.nombre}</h3>
+            <p class="text-xs text-gray-500 mt-1"><i class="fa-solid fa-location-dot mr-1"></i>${l.ubicacion||'Sin ubicación'}</p>
+            <p class="text-xs text-gray-500 mt-0.5"><i class="fa-regular fa-clock mr-1"></i>${l.horario||'Sin horario'}</p>
+          </div>
+          <button onclick="mostrarFormAdmin('local','${l.id}')" class="ml-2 bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded-lg text-xs font-medium flex-shrink-0">
+            <i class="fa-solid fa-pen-to-square mr-1"></i>Editar
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(err){Swal.fire({icon:'error',title:'Error',text:err.message});}
 }
 
 async function cargarLocalPedidos(){activarLATab('pedidos');
