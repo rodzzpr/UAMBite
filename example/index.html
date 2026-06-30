@@ -150,6 +150,36 @@
     </p>
   </div>
 
+  <!-- ==================== CAMBIO DE CONTRASEÑA OBLIGATORIO ==================== -->
+  <div id="vista-cambiar-password" class="flex-1 flex flex-col justify-center px-6 fade-in hidden">
+    <div class="text-center mb-6">
+      <i class="fa-solid fa-shield-halved text-5xl text-blue-600 mb-3"></i>
+      <h2 class="text-xl font-bold text-gray-800">Cambia tu contraseña</h2>
+      <p class="text-gray-500 text-sm mt-1">Estás usando una contraseña temporal. Define una nueva para continuar.</p>
+    </div>
+    <form id="form-cambiar-password" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña actual (temporal)</label>
+        <input id="cp-actual" type="password" required
+          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Nueva contraseña</label>
+        <input id="cp-nuevo" type="password" required minlength="6" placeholder="Mínimo 6 caracteres"
+          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Confirmar nueva contraseña</label>
+        <input id="cp-confirmar" type="password" required minlength="6"
+          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+      </div>
+      <button type="submit"
+        class="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition">
+        <i class="fa-solid fa-key mr-2"></i>Establecer contraseña
+      </button>
+    </form>
+  </div>
+
   <!-- ==================== REGISTER ==================== -->
   <div id="vista-register" class="flex-1 flex-col justify-center px-6 hidden">
     <div class="flex items-center mb-6 mt-6">
@@ -446,10 +476,10 @@ async function eliminarImagen(tipo,id,nombre){
 
 // ==================== NAVEGACIÓN SPA ====================
 function mostrarVista(vista){
-  ['login','register','home','cart','orders','profile','local','local-admin','admin'].forEach(v=>document.getElementById('vista-'+v).classList.add('hidden'));
+  ['login','register','home','cart','orders','profile','local','local-admin','admin','cambiar-password'].forEach(v=>document.getElementById('vista-'+v).classList.add('hidden'));
   document.getElementById('vista-'+vista).classList.remove('hidden');
   const nav=document.getElementById('nav-bottom');
-  if(['login','register'].includes(vista)){nav.classList.add('hidden');}else{nav.classList.remove('hidden');}
+  if(['login','register','cambiar-password'].includes(vista)){nav.classList.add('hidden');}else{nav.classList.remove('hidden');}
   document.querySelectorAll('.nav-item[data-nav]').forEach(b=>b.classList.remove('active'));
   const btn=document.querySelector(`[data-nav="${vista}"]`);if(btn)btn.classList.add('active');
   if(vista==='home')cargarHome();else if(vista==='cart')renderCart();else if(vista==='orders')cargarPedidos();else if(vista==='profile')cargarPerfil();else if(vista==='local-admin')cargarLocalPedidos();else if(vista==='admin')cargarAdminPedidos();
@@ -534,8 +564,33 @@ document.getElementById('form-login').addEventListener('submit',async(e)=>{
   e.preventDefault();
   try{
     const d=await apiCall('POST','/auth/login',{carnet:document.getElementById('login-carnet').value.trim(),password:document.getElementById('login-password').value},false);
-    guardarSesion(d);Swal.fire({icon:'success',title:`Bienvenido, ${d.nombre}!`,timer:1500,showConfirmButton:false});
-    state.cart=JSON.parse(localStorage.getItem('uambite_cart_'+d.id)||'[]');actualizarBadge();mostrarVista('home');
+    guardarSesion(d);
+    if(d.requiereCambioPassword){
+      state.cart=JSON.parse(localStorage.getItem('uambite_cart_'+d.id)||'[]');
+      Swal.fire({icon:'info',title:'Contraseña temporal',text:'Debes cambiar tu contraseña antes de continuar.',timer:2000,showConfirmButton:false});
+      mostrarVista('cambiar-password');
+    }else{
+      Swal.fire({icon:'success',title:`Bienvenido, ${d.nombre}!`,timer:1500,showConfirmButton:false});
+      state.cart=JSON.parse(localStorage.getItem('uambite_cart_'+d.id)||'[]');actualizarBadge();mostrarVista('home');
+    }
+  }catch(err){Swal.fire({icon:'error',title:'Error',text:err.message});}
+});
+
+document.getElementById('form-cambiar-password').addEventListener('submit',async(e)=>{
+  e.preventDefault();
+  const actual=document.getElementById('cp-actual').value;
+  const nuevo=document.getElementById('cp-nuevo').value;
+  const confirmar=document.getElementById('cp-confirmar').value;
+  if(nuevo.length<6){Swal.fire({icon:'warning',title:'Contraseña muy corta',text:'Mínimo 6 caracteres'});return;}
+  if(nuevo!==confirmar){Swal.fire({icon:'warning',title:'No coinciden',text:'La confirmación no coincide con la nueva contraseña'});return;}
+  if(actual===nuevo){Swal.fire({icon:'warning',title:'Misma contraseña',text:'La nueva contraseña debe ser distinta a la actual'});return;}
+  try{
+    await apiCall('POST','/auth/cambiar-password',{passwordActual:actual,passwordNuevo:nuevo});
+    state.user.requiereCambioPassword=false;
+    localStorage.setItem('uambite_user',JSON.stringify(state.user));
+    document.getElementById('form-cambiar-password').reset();
+    Swal.fire({icon:'success',title:'Contraseña actualizada',text:'Bienvenido a UAMBite',timer:1500,showConfirmButton:false});
+    mostrarVista('home');
   }catch(err){Swal.fire({icon:'error',title:'Error',text:err.message});}
 });
 

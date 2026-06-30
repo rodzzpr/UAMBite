@@ -20,4 +20,5 @@ public class AuthResponse {
     private String apellido;
     private String correo;
     private Rol rol;
+    private Boolean requiereCambioPassword;
 }

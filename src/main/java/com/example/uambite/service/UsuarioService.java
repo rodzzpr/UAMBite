@@ -10,6 +10,8 @@ import com.example.uambite.model.Rol;
 import com.example.uambite.model.Usuario;
 import com.example.uambite.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -24,6 +26,8 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class UsuarioService {
+
+    private static final Logger log = LoggerFactory.getLogger(UsuarioService.class);
 
     private final UsuarioRepository repository;
     private final PasswordEncoder passwordEncoder;
@@ -97,6 +101,24 @@ public class UsuarioService {
             usuario.setPassword(passwordEncoder.encode(request.getPassword()));
         }
         return toResponse(repository.save(usuario));
+    }
+
+    @Transactional
+    public void cambiarPassword(UUID usuarioId, String passwordActual, String passwordNuevo) {
+        Usuario usuario = repository.findById(usuarioId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado."));
+        if (!passwordEncoder.matches(passwordActual, usuario.getPassword())) {
+            throw new BusinessException("La contraseña actual no es correcta.",
+                    HttpStatus.BAD_REQUEST, "INVALID_CURRENT_PASSWORD");
+        }
+        if (passwordActual.equals(passwordNuevo)) {
+            throw new BusinessException("La contraseña nueva debe ser distinta a la actual.",
+                    HttpStatus.BAD_REQUEST, "SAME_PASSWORD");
+        }
+        usuario.setPassword(passwordEncoder.encode(passwordNuevo));
+        usuario.setPasswordTemporal(false);
+        repository.save(usuario);
+        log.info("Usuario '{}' actualizo su contraseña (passwordTemporal=false).", usuario.getCarnet());
     }
 
     private UsuarioResponse toResponse(Usuario usuario) {

@@ -34,6 +34,10 @@ public class Usuario extends BaseEntity {
     @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean passwordTemporal = false;
+
     @Enumerated(EnumType.STRING)
     @Column(length = 30)
     private Rol rol;
